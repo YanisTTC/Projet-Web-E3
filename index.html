@@ -90,6 +90,46 @@
 
         let ecoles = L.geoJSON(data).addTo(map);
 
+        map.on('click', (event) => {
+            // Retrieve the latitude and longitude from the click event
+            let { lat, lng } = event.latlng;
+
+            // Create and add a marker at the clicked location
+            let newMarker = L.marker([lat, lng], { title: `Lat: ${lat}, Lng: ${lng}` }).addTo(map);
+
+            // Add click event to the marker to remove it on the second click
+            newMarker.on('click', function () {
+                map.removeLayer(newMarker); // Remove marker from the map
+            });
+        
+        });
+
+        // Add a custom control to clear all markers
+        let clearMarkersButton = L.control({ position: 'topright' });
+
+        clearMarkersButton.onAdd = function () {
+            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            div.innerHTML = '<button style="background-color: white; border: none; padding: 5px 10px; cursor: pointer;">Clear Markers</button>';
+
+            // Prevent map clicks when interacting with the button
+            L.DomEvent.disableClickPropagation(div);
+
+            // Add click event to the button
+            div.onclick = () => {
+                // Loop through all markers and remove them from the map
+                addedMarkers.forEach(marker => {
+                    map.removeLayer(marker);
+                });
+                // Clear the addedMarkers array
+                addedMarkers = [];
+                alert("All markers have been removed!");
+            };
+
+            return div;
+        };
+
+        clearMarkersButton.addTo(map);
+
         }; 
     </script>
 
