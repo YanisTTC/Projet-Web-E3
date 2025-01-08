@@ -24,7 +24,7 @@
     <script>
         "use strict";
 
-        async function getEcoles() {
+        async function fetchSchool() {
 
             let rep = await fetch("/fr-esr-principaux-etablissements-enseignement-superieur@mesr.geojson")
         
@@ -40,7 +40,7 @@
 
         }
 
-        async function getLogementsCrous() {
+        async function fetchHousing() {
 
             let rep = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
 
@@ -75,11 +75,11 @@
         let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
         /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
 
-        let dataEcoles = await getEcoles();
-        let dataLogements = await getLogementsCrous();
+        let dataSchool = await fetchSchool();
+        let dataHousing = await fetchHousing();
         
         
-        function createCustomEcoleIcon (feature, latlng) {
+        function createCustomSchoolIcon (feature, latlng) {
             let myIcon = L.icon({
             iconUrl: 'assets/ecole-icon.png',
             shadowUrl: 'assets/ecole-icon.png',
@@ -92,7 +92,7 @@
             return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
         }
 
-        function createCustomLogementIcon (feature, latlng) {
+        function createCustomHousingIcon (feature, latlng) {
             let myIcon = L.icon({
             iconUrl: 'assets/logement-icon.png',
             shadowUrl: 'assets/logement-icon.png',
@@ -111,18 +111,18 @@
         }*/
 
         
-        let myLayerEcoleOptions = {
-            pointToLayer: createCustomEcoleIcon
+        let myLayerSchoolOptions = {
+            pointToLayer: createCustomSchoolIcon
         }
 
-        let myLayerLogementOptions = {
-            pointToLayer: createCustomLogementIcon
+        let myLayerHousingOptions = {
+            pointToLayer: createCustomHousingIcon
         }
     
         
 
-        let ecoles = L.geoJSON(dataEcoles,myLayerEcoleOptions).addTo(map);
-        let logements = L.geoJSON(dataLogements,myLayerLogementOptions).addTo(map);
+        let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
+        let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
 
         }; 
     </script>
