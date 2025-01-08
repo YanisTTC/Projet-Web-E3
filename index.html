@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stud’Path - Find student residences and universities with ease">
+    <meta name="author" content="Your Name">
+    <title>Stud'Path</title>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/map.css">
+
+    <!-- Leaflet.js (Map Library) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav>
+            <h1>Stud’Path</h1>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Search Form -->
+        <section class="search-section">
+            <h2>Find Your Path</h2>
+            <form id="search-form">
+                <label for="search-type">Search by:</label>
+                <select id="search-type" name="search-type">
+                    <option value="residence">Student Residence</option>
+                    <option value="address">Custom Address</option>
+                    <option value="school">School</option>
+                </select>
+                <input type="text" id="search-input" placeholder="Enter your search term..." />
+                <button type="submit">Search</button>
+            </form>
+        </section>
+
+        <!-- Map Section -->
+        <section id="map-section">
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Stud’Path. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/map.js"></script>
+</body>
+</html>
