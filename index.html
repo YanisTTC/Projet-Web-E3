@@ -97,12 +97,22 @@
         // Initialize an array to keep track of all markers
         let markers = [];
 
+        // Define a custom icon for the markers
+        const customIcon = L.icon({
+            iconUrl: 'assets/marker_click.png', // URL of the custom icon image
+            iconSize: [35, 35], // Size of the icon [width, height]
+            iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
+        });
+
         map.on('click', (event) => {
             // Retrieve the latitude and longitude from the click event
             let { lat, lng } = event.latlng;
 
-            // Create and add a marker at the clicked location
-            let newMarker = L.marker([lat, lng], { title: `Lat: ${lat}, Lng: ${lng}` }).addTo(map);
+            // Create and add a marker at the clicked location with the custom icon
+            let newMarker = L.marker([lat, lng], { 
+                icon: customIcon, // Use the custom icon here
+                title: `Lat: ${lat}, Lng: ${lng}` 
+            }).addTo(map);
 
             // Add the new marker to the markers array
             markers.push(newMarker);
@@ -110,6 +120,7 @@
             // Add click event to the marker to remove it on the second click
             newMarker.on('click', function () {
                 map.removeLayer(newMarker); // Remove marker from the map
+                markers = markers.filter(marker => marker !== newMarker); // Remove the marker from the array
             });
         
         });
