@@ -24,10 +24,26 @@
     <script>
         "use strict";
 
-        async function getEcoles() {
+        async function fetchSchool() {
 
             let rep = await fetch("/fr-esr-principaux-etablissements-enseignement-superieur@mesr.geojson")
         
+            if (!rep.ok) {
+                throw Error(rep.statusText);
+            }
+            console.log(rep.status);
+
+            let json = await rep.json();
+            console.log(json);
+
+            return json;
+
+        }
+
+        async function fetchHousing() {
+
+            let rep = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
+
             if (!rep.ok) {
                 throw Error(rep.statusText);
             }
@@ -59,36 +75,54 @@
         let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
         /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
 
-        let data = await getEcoles();
+        let dataSchool = await fetchSchool();
+        let dataHousing = await fetchHousing();
         
-        /*
-        function createCustomIcon (feature, latlng) {
+        
+        function createCustomSchoolIcon (feature, latlng) {
             let myIcon = L.icon({
-            iconUrl: 'essence_icon.png',
-            shadowUrl: 'essence_icon.png',
+            iconUrl: 'assets/ecole-icon.png',
+            shadowUrl: 'assets/ecole-icon.png',
             iconSize:     [35, 35], // width and height of the image in pixels
             shadowSize:   [35, 20], // width, height of optional shadow image
             iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
             shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
             popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
             })
-            return L.marker(latlng, { icon: myIcon , title: "E10: " + feature.properties.e10_prix + "€"})
-        }*/
+            return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
+        }
+
+        function createCustomHousingIcon (feature, latlng) {
+            let myIcon = L.icon({
+            iconUrl: 'assets/logement-icon.png',
+            shadowUrl: 'assets/logement-icon.png',
+            iconSize:     [35, 35], // width and height of the image in pixels
+            shadowSize:   [35, 20], // width, height of optional shadow image
+            iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
+            shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
+            popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+            })
+            return L.marker(latlng, { icon: myIcon , title: feature.properties.title})
+        }
 
         /*
         function createCustomFilter(feature) {
             return feature.properties.e10_prix > 1.8 && feature.properties.id != 77140010 && feature.properties.id != 77140012;
         }*/
 
-        /*
-        let myLayerOptions = {
-            pointToLayer: createCustomIcon,
-            filter: createCustomFilter
+        
+        let myLayerSchoolOptions = {
+            pointToLayer: createCustomSchoolIcon
+        }
+
+        let myLayerHousingOptions = {
+            pointToLayer: createCustomHousingIcon
         }
     
-        */
+        
 
-        let ecoles = L.geoJSON(data).addTo(map);
+        let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
+        let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
 
         
         
