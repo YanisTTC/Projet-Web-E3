@@ -8,7 +8,7 @@
     <title>Stud'Path</title>
 
     <!-- CSS Stylesheets -->
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/styles.css">
     <link rel="stylesheet" href="assets/css/map.css">
 
     <!-- Leaflet.js (Map Library) -->
@@ -57,27 +57,133 @@
         }
         
         window.onload = async () => {
-        /*Crée un layer avec les tuiles OpenStreetMap*/
-        let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
-            maxZoom: 15,
-            attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            ext: 'png'
+            /*Crée un layer avec les tuiles OpenStreetMap*/
+            let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
+                maxZoom: 15,
+                attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                ext: 'png'
+            });
+
+            /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
+            let map = L.map('map', {
+                center: [48.6686111, 2.843888888888889],
+                zoom: 9,
+                layers: [layer]
+            });
+
+            /*Crée un marqueur sur les coordonnées spécifiées*/
+            let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
+            /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
+
+            let dataSchool = await fetchSchool();
+            let dataHousing = await fetchHousing();
+
+            const searchType = document.getElementById("search-type");
+            const searchInput = document.getElementById("search-input");
+            const form = document.getElementById("search-form");
+            const suggestions = document.getElementById("suggestions");
+
+            let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
+            let housingData = dataHousing.features.map(feature => feature.properties.title);
+
+            // Gestion des suggestions en fonction de l'entrée
+            searchInput.addEventListener("input", () => {
+                const value = searchInput.value.toLowerCase();
+                suggestions.innerHTML = ""; // Réinitialiser les suggestions
+
+                if (value.length > 0) {
+                    let filteredResults = [];
+                    if (searchType.value === "school") {
+                        filteredResults = schoolData.filter(school => school.toLowerCase().startsWith(value));
+                    } else if (searchType.value === "residence") {
+                        filteredResults = housingData.filter(residence => residence.toLowerCase().startsWith(value));
+                    }
+
+                    // Limiter les suggestions à un maximum de 5 résultats
+                    filteredResults.slice(0, 5).forEach(result => {
+                        const suggestionItem = document.createElement("li");
+                        suggestionItem.textContent = result;
+                        suggestionItem.classList.add("suggestion-item");
+                        suggestionItem.addEventListener("click", () => {
+                            searchInput.value = result; // Remplir l'input avec la suggestion choisie
+                            suggestions.style.display = "none"; // Cacher les suggestions
+                        });
+                        suggestions.appendChild(suggestionItem);
+                    });
+
+                    // Afficher ou cacher les suggestions en fonction des résultats
+                    suggestions.style.display = filteredResults.length > 0 ? "block" : "none";
+                } else {
+                    suggestions.style.display = "none"; // Cacher si aucun résultat
+                }
+            });
+
+
+        // Gérer le type de recherche
+        searchType.addEventListener("change", () => {
+            searchInput.value = ""; // Réinitialiser l'input
+            suggestions.innerHTML = ""; // Effacer les suggestions
+            suggestions.style.display = "none"; // Cacher les suggestions
+
+            const placeholder = {
+                residence: "Enter the name of the residence...",
+                address: "Enter a custom address...",
+                school: "Enter the name of the school..."
+            };
+            searchInput.placeholder = placeholder[searchType.value];
         });
 
-        /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
-        let map = L.map('map', {
-            center: [48.6686111, 2.843888888888889],
-            zoom: 9,
-            layers: [layer]
+        // Gérer la soumission du formulaire
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const searchValue = searchInput.value;
+
+            if (searchType.value === "school") {
+                const matchedSchool = dataSchool.features.find(
+                    feature => feature.properties.uo_lib.toLowerCase() === searchValue.toLowerCase()
+                );
+                if (matchedSchool) {
+                    const { geometry } = matchedSchool;
+                    if (geometry && geometry.coordinates) {
+                        const [lng, lat] = geometry.coordinates;
+                        map.setView([lat, lng], 13); // Centrer la carte sur l'école sélectionnée
+                    } else {
+                        alert("Coordinates not available for the selected school.");
+                    }
+                } else {
+                    alert("No matching school found.");
+                }
+            } else if (searchType.value === "residence") {
+                const matchedResidence = dataHousing.features.find(
+                    feature => feature.properties.title.toLowerCase() === searchValue.toLowerCase()
+                );
+                if (matchedResidence) {
+                    const { geometry } = matchedResidence;
+                    if (geometry && geometry.coordinates) {
+                        const [lng, lat] = geometry.coordinates;
+                        map.setView([lat, lng], 13); // Centrer la carte sur la résidence sélectionnée
+                    } else {
+                        alert("Coordinates not available for the selected residence.");
+                    }
+                } else {
+                    alert("No matching residence found.");
+                }
+            } else if (searchType.value === "address") {
+                console.log("Searching address:", searchValue);
+            }
         });
 
-        /*Crée un marqueur sur les coordonnées spécifiées*/
-        let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
-        /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
+        // Cacher les suggestions lorsque le champ perd le focus
+        searchInput.addEventListener("blur", () => {
+            setTimeout(() => suggestions.style.display = "none", 200); // Délai pour permettre le clic sur une suggestion
+        });
 
-        let dataSchool = await fetchSchool();
-        let dataHousing = await fetchHousing();
-        
+        // Afficher les suggestions lorsque le champ regagne le focus
+        searchInput.addEventListener("focus", () => {
+            if (suggestions.children.length > 0) {
+                suggestions.style.display = "block";
+            }
+        });
         
         function createCustomSchoolIcon (feature, latlng) {
             let myIcon = L.icon({
@@ -221,14 +327,17 @@
             <form id="search-form">
                 <label for="search-type">Search by:</label>
                 <select id="search-type" name="search-type">
+                    <option value="school">School</option>
                     <option value="residence">Student Residence</option>
                     <option value="address">Custom Address</option>
-                    <option value="school">School</option>
                 </select>
-                <input type="text" id="search-input" placeholder="Enter your search term..." />
+                <input type="text" id="search-input" placeholder="Enter your search term..." autocomplete="off" />
+                <!-- Liste des suggestions générée dynamiquement -->
+                <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
                 <button type="submit">Search</button>
             </form>
         </section>
+        
 
         <!-- Map Section -->
         <section id="map-section">
