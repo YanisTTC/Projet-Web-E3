@@ -27,7 +27,7 @@
         async function fetchSchool() {
 
             let rep = await fetch("/fr-esr-principaux-etablissements-enseignement-superieur@mesr.geojson")
-        
+
             if (!rep.ok) {
                 throw Error(rep.statusText);
             }
@@ -56,145 +56,207 @@
 
         }
         
+        
+        
+        /*****************     Create the Popup for each school and student housing     *****************/
+        
+        function createPopupContent(properties) {
+            const photo = properties.photo ? properties.photo.replace(/\\/g, '') : 'assets/images/default.jpg';
+
+            // Dynamically construct content based on the available properties
+            const lines = [];
+
+            if (properties.title || properties.name || properties.uo_lib) {
+                lines.push(`<strong>${properties.title || properties.name || properties.uo_lib}</strong><br>`);
+            }
+
+            if (properties.phone || properties.numero_telephone_uai) {
+                lines.push(`<p><strong>Phone:</strong> ${properties.phone || properties.numero_telephone_uai}</p>`);
+            }
+
+            if (properties.address || properties.adresse_uai) {
+                lines.push(`<p><strong>Address:</strong> ${properties.address || properties.adresse_uai}</p>`);
+            }
+
+            if (properties.services) {
+                lines.push(`<p><strong>Services:</strong> ${properties.services}</p>`);
+            }
+
+            if (properties.mail) {
+                lines.push(
+                    `<p><strong>Email:</strong> <a href="mailto:${properties.mail}" target="_blank">${properties.mail}</a></p>`
+                );
+            }
+
+            if (properties.url || properties.interneturl) {
+                const website = properties.url || properties.interneturl;
+                lines.push(
+                    `<p><strong>Web site:</strong> <a href="${website}" target="_blank">${website}</a></p>`
+                );
+            }
+
+            // Combine all lines into the popup content
+            return `
+                <div>
+                    <img src="${photo}" alt="Photo" style="width: 100%; height: auto; margin-bottom: 10px;" 
+                        onerror="this.src='assets/images/default.jpg';">
+                    ${lines.join('')}
+                </div>
+            `;
+        }
+        /************************************************************************************/
+
+        
+        
+        /*****************     Create custumized icons for the markers     *****************/
+        
+        function createCustomIcon(iconUrl) {
+            return L.icon({
+                iconUrl,
+                iconSize: [35, 35],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -10]
+            });
+        }
+
+        /************************************************************************************/
+        
         window.onload = async () => {
-        /*Crée un layer avec les tuiles OpenStreetMap*/
-        let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
-            maxZoom: 15,
-            attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            ext: 'png'
-        });
+            /*Crée un layer avec les tuiles OpenStreetMap*/
+            let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
+                maxZoom: 25,
+                attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                ext: 'png'
+            });
 
-        /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
-        let map = L.map('map', {
-            center: [48.6686111, 2.843888888888889],
-            zoom: 9,
-            layers: [layer]
-        });
+            /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
+            let map = L.map('map', {
+                center: [48.6686111, 2.843888888888889],
+                zoom: 9,
+                layers: [layer]
+            });
 
-        /*Crée un marqueur sur les coordonnées spécifiées*/
-        let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
-        /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
+            
+            let dataSchool = await fetchSchool();
+            let dataHousing = await fetchHousing();
+            
+            
+            function createSchoolMarker(feature, latlng) {
+                let marker = L.marker(latlng, {
+                    icon: createCustomIcon('assets/marker_school.png'),
+                    title: feature.properties.name
+                });
+                marker.bindPopup(createPopupContent(feature.properties));
+                return marker;
+            }
 
-        let dataSchool = await fetchSchool();
-        let dataHousing = await fetchHousing();
-        
-        
-        function createCustomSchoolIcon (feature, latlng) {
-            let myIcon = L.icon({
-            iconUrl: 'assets/ecole-icon.png',
-            shadowUrl: 'assets/ecole-icon.png',
-            iconSize:     [35, 35], // width and height of the image in pixels
-            shadowSize:   [35, 20], // width, height of optional shadow image
-            iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-            shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-            popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-            })
-            return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
-        }
 
-        function createCustomHousingIcon (feature, latlng) {
-            let myIcon = L.icon({
-            iconUrl: 'assets/logement-icon.png',
-            shadowUrl: 'assets/logement-icon.png',
-            iconSize:     [35, 35], // width and height of the image in pixels
-            shadowSize:   [35, 20], // width, height of optional shadow image
-            iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-            shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-            popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-            })
-            return L.marker(latlng, { icon: myIcon , title: feature.properties.title})
-        }
+            function createHousingMarker(feature, latlng) {
+                let marker = L.marker(latlng, {
+                    icon: createCustomIcon('assets/marker_housing.png'),
+                    title: feature.properties.name
+                });
+                marker.bindPopup(createPopupContent(feature.properties));
+                return marker;
+            }
 
-        /*
-        function createCustomFilter(feature) {
-            return feature.properties.e10_prix > 1.8 && feature.properties.id != 77140010 && feature.properties.id != 77140012;
-        }*/
+            /*
+            function createCustomFilter(feature) {
+                return feature.properties.e10_prix > 1.8 && feature.properties.id != 77140010 && feature.properties.id != 77140012;
+            }*/
 
-        
-        let myLayerSchoolOptions = {
-            pointToLayer: createCustomSchoolIcon
-        }
-
-        let myLayerHousingOptions = {
-            pointToLayer: createCustomHousingIcon
-        }
-    
-        
-
-        let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
-        let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
-
-        
-        
-        /*****************     Add markers to the map by clicking     *****************/
-        
-        // Initialize an array to keep track of all markers
-        let markers = [];
-
-        // Define a custom icon for the markers
-        const customIcon = L.icon({
-            iconUrl: 'assets/marker_click.png', // URL of the custom icon image
-            iconSize: [35, 35], // Size of the icon [width, height]
-            iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
-        });
-
-        map.on('click', (event) => {
-            // Retrieve the latitude and longitude from the click event
-            let { lat, lng } = event.latlng;
-
-            // Create and add a marker at the clicked location with the custom icon
-            let newMarker = L.marker([lat, lng], { 
-                icon: customIcon, // Use the custom icon here
-                title: `Lat: ${lat}, Lng: ${lng}` 
+            
+            L.geoJSON(dataSchool, {
+                pointToLayer: createSchoolMarker
             }).addTo(map);
 
-            // Add the new marker to the markers array
-            markers.push(newMarker);
+            L.geoJSON(dataHousing, {
+                pointToLayer: createHousingMarker
+            }).addTo(map);
             
-            // Add click event to the marker to remove it on the second click
-            newMarker.on('click', function () {
-                map.removeLayer(newMarker); // Remove marker from the map
-                markers = markers.filter(marker => marker !== newMarker); // Remove the marker from the array
-            });
-        
-        });
+            
+            /*****************     Add markers to the map by clicking     *****************/
+            
+            // Initialize an array to keep track of all markers
+            let markers = [];
 
-        /*****************     Remove all markers by clicking on a button    *****************/
-
-        function removeAllMarkers() {
-            markers.forEach(marker => map.removeLayer(marker)); // Remove each marker from the map
-            markers = []; // Clear the markers array
-        }
-
-        // Add a button to remove all markers
-        let button = L.control({ position: 'topright' });
-        button.onAdd = function () {
-            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '5px';
-            div.style.cursor = 'pointer';
-            div.innerHTML = 'Remove All Markers';
-            div.onclick = removeAllMarkers; // Attach the removeAllMarkers function to the button click
-            return div;
-        };
-
-        button.onAdd = function () {
-            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '5px';
-            div.style.cursor = 'pointer';
-            div.innerHTML = 'Remove All Markers';
-
-            // Prevent map click events when interacting with the button
-            L.DomEvent.on(div, 'click', function (e) {
-                L.DomEvent.stopPropagation(e); // Stop click propagation
-                removeAllMarkers(); // Call the function to remove all markers
+            // Define a custom icon for the markers
+            const customIcon = L.icon({
+                iconUrl: 'assets/marker_click.png', // URL of the custom icon image
+                iconSize: [35, 35], // Size of the icon [width, height]
+                iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
             });
 
-            return div;
-        };
+            // Flag to track if a popup is currently open
+            let popupOpen = false;
 
-        button.addTo(map);
+            // Set the flag when a popup opens
+            map.on('popupopen', () => {
+                popupOpen = true;
+            });
+
+            // Reset the flag when a popup closes
+            map.on('popupclose', () => {
+                popupOpen = false;
+            });
+            
+            map.on('click', (event) => {
+                // Retrieve the latitude and longitude from the click event
+                let { lat, lng } = event.latlng;
+
+                // Create and add a marker at the clicked location with the custom icon
+                let newMarker = L.marker([lat, lng], { 
+                    icon: customIcon, // Use the custom icon here
+                    title: `Lat: ${lat}, Lng: ${lng}` 
+                }).addTo(map);
+
+                // Add the new marker to the markers array
+                markers.push(newMarker);
+                
+                // Add click event to the marker to remove it on the second click
+                newMarker.on('click', function () {
+                    map.removeLayer(newMarker); // Remove marker from the map
+                    markers = markers.filter(marker => marker !== newMarker); // Remove the marker from the array
+                });
+            
+            });
+
+            /*****************     Remove all markers by clicking on a button    *****************/
+
+            function removeAllMarkers() {
+                markers.forEach(marker => map.removeLayer(marker)); // Remove each marker from the map
+                markers = []; // Clear the markers array
+            }
+
+            // Add a button to remove all markers
+            let button = L.control({ position: 'topright' });
+            button.onAdd = function () {
+                let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                div.style.backgroundColor = 'white';
+                div.style.padding = '5px';
+                div.style.cursor = 'pointer';
+                div.innerHTML = 'Remove All Markers';
+                div.onclick = removeAllMarkers; // Attach the removeAllMarkers function to the button click
+                return div;
+            };
+
+            button.onAdd = function () {
+                let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                div.style.backgroundColor = 'white';
+                div.style.padding = '5px';
+                div.style.cursor = 'pointer';
+                div.innerHTML = 'Remove All Markers';
+
+                // Prevent map click events when interacting with the button
+                L.DomEvent.on(div, 'click', function (e) {
+                    L.DomEvent.stopPropagation(e); // Stop click propagation
+                    removeAllMarkers(); // Call the function to remove all markers
+                });
+
+                return div;
+            };
+
+            button.addTo(map);
 
         }; 
     </script>
