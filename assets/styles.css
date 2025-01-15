@@ -1,6 +1,4 @@
-/* styles.css */
 
-/* Global Styles */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -18,7 +16,6 @@ a:hover {
     color: #0056b3;
 }
 
-/* Header Styles */
 header {
     background: #333;
     color: #fff;
@@ -56,7 +53,6 @@ header nav ul li a {
     font-size: 1rem;
 }
 
-/* Main Content Styles */
 main {
     max-width: 90%;
     margin: 2rem auto;
@@ -75,26 +71,26 @@ main {
 
 #search-form {
     display: flex;
-    align-items: center; /* Aligne les éléments horizontalement */
-    justify-content: center; /* Centre le formulaire dans la section */
+    align-items: center; 
+    justify-content: center; 
     width: 100%;
-    max-width: 800px; /* Augmente la largeur maximale du formulaire */
+    max-width: 800px; 
     margin: 0 auto;
-    position: relative; /* Pour positionner les suggestions correctement */
+    position: relative;
     padding-bottom: 1rem;
 }
 
 #search-type {
     padding: 10px;
-    margin-right: 10px; /* Espacement entre le select et l'input */
+    margin-right: 10px; 
     border: 1px solid #ccc;
     border-radius: 4px;
-    width: 200px; /* Fixe une largeur pour le sélecteur */
+    width: 200px; 
 }
 
 #search-input {
-    width: 100%; /* L'input prend toute la largeur restante */
-    max-width: 400px; /* Limite la largeur maximale de l'input */
+    width: 100%; 
+    max-width: 400px; 
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -126,9 +122,9 @@ main {
 
 #suggestions {
     position: absolute;
-    top: 100%; /* Place les suggestions juste sous l'input */
+    top: 100%; 
     left: 0;
-    width: 100%; /* Les suggestions prennent toute la largeur de l'input */
+    width: 100%; 
     background-color: #fff;
     border: 1px solid #ccc;
     border-top: none;
@@ -137,7 +133,7 @@ main {
     padding: 0;
     margin: 0;
     z-index: 1000;
-    box-sizing: border-box; /* Inclut padding et bordure dans la largeur */
+    box-sizing: border-box; 
 }
 
 #suggestions .suggestion-item {
@@ -163,7 +159,6 @@ main {
     background: #f0f0f0;
 }
 
-/* Map Section */
 #map-section {
     display: flex;
     justify-content: center;
@@ -178,7 +173,7 @@ main {
     border-radius: 10px;
 }
 
-/* Footer Styles */
+
 footer {
     background: #333;
     color: #fff;

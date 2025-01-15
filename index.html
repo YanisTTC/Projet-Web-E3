@@ -59,21 +59,17 @@
         window.onload = async () => {
             /*Crée un layer avec les tuiles OpenStreetMap*/
             let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
-                maxZoom: 15,
+                maxZoom: 20,
                 attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 ext: 'png'
             });
 
             /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
             let map = L.map('map', {
-                center: [48.6686111, 2.843888888888889],
+                center: [48.866667, 2.333333],
                 zoom: 9,
                 layers: [layer]
             });
-
-            /*Crée un marqueur sur les coordonnées spécifiées*/
-            let marker = L.marker([48.6266667, 2.9333333333333336],{title: 'Centre Géographique de Seine-et-Marne'}).addTo(map);
-            /*Coordonnées du centre géographique de Seine et Marne (IGN Institut)*/
 
             let dataSchool = await fetchSchool();
             let dataHousing = await fetchHousing();
@@ -99,7 +95,7 @@
                         filteredResults = housingData.filter(residence => residence.toLowerCase().startsWith(value));
                     }
 
-                    // Limiter les suggestions à un maximum de 5 résultats
+                    // 5 suggestions maximum
                     filteredResults.slice(0, 5).forEach(result => {
                         const suggestionItem = document.createElement("li");
                         suggestionItem.textContent = result;
@@ -146,7 +142,7 @@
                     const { geometry } = matchedSchool;
                     if (geometry && geometry.coordinates) {
                         const [lng, lat] = geometry.coordinates;
-                        map.setView([lat, lng], 13); // Centrer la carte sur l'école sélectionnée
+                        map.setView([lat, lng], 13); // zoom on the school
                     } else {
                         alert("Coordinates not available for the selected school.");
                     }
@@ -161,7 +157,7 @@
                     const { geometry } = matchedResidence;
                     if (geometry && geometry.coordinates) {
                         const [lng, lat] = geometry.coordinates;
-                        map.setView([lat, lng], 13); // Centrer la carte sur la résidence sélectionnée
+                        map.setView([lat, lng], 13); // zoom on the residence
                     } else {
                         alert("Coordinates not available for the selected residence.");
                     }
@@ -347,11 +343,8 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Stud’Path. All rights reserved.</p>
+        <p>&copy; 2025 Stud’Path </p>
     </footer>
 
-    <!-- JavaScript Files -->
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/map.js"></script>
 </body>
 </html>
