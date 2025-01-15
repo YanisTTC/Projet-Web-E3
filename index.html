@@ -187,39 +187,45 @@
                 iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
             });
 
-            // Flag to track if a popup is currently open
-            let popupOpen = false;
+            // Flag to track if a popup is open
+            let popupOpen = false; 
 
-            // Set the flag when a popup opens
+            // Listen for when a popup is opened and set the flag
             map.on('popupopen', () => {
                 popupOpen = true;
             });
 
-            // Reset the flag when a popup closes
+            // Listen for when a popup is closed and reset the flag
             map.on('popupclose', () => {
                 popupOpen = false;
             });
-            
+
+            // Map click event to handle marker creation
             map.on('click', (event) => {
-                // Retrieve the latitude and longitude from the click event
+                // Do nothing if the popup is open
+                if (popupOpen) {
+                    return;
+                }
+
+                // If the click is not on a marker or popup, create a new marker
                 let { lat, lng } = event.latlng;
 
-                // Create and add a marker at the clicked location with the custom icon
-                let newMarker = L.marker([lat, lng], { 
+                let newMarker = L.marker([lat, lng], {
                     icon: customIcon, // Use the custom icon here
-                    title: `Lat: ${lat}, Lng: ${lng}` 
+                    title: `Lat: ${lat}, Lng: ${lng}`
                 }).addTo(map);
 
-                // Add the new marker to the markers array
-                markers.push(newMarker);
-                
+                markers.push(newMarker); // Add marker to the array
+
                 // Add click event to the marker to remove it on the second click
                 newMarker.on('click', function () {
-                    map.removeLayer(newMarker); // Remove marker from the map
-                    markers = markers.filter(marker => marker !== newMarker); // Remove the marker from the array
+                    map.removeLayer(newMarker); // Remove marker from map
+                    markers = markers.filter(marker => marker !== newMarker); // Remove from array
                 });
-            
             });
+
+
+
 
             /*****************     Remove all markers by clicking on a button    *****************/
 
