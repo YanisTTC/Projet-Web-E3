@@ -55,6 +55,30 @@
             return json;
 
         }
+
+        // Fonction pour géocoder une adresse personnalisée
+        async function geocodeAddress(address) {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch geocoding data");
+                }
+                const data = await response.json();
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+                    return { lat: parseFloat(lat), lon: parseFloat(lon) };
+                } else {
+                    alert("Address not found. Please try again.");
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error in geocoding:", error);
+                alert("An error occurred while searching for the address.");
+                return null;
+            }
+        }
+
         
         window.onload = async () => {
             /*Crée un layer avec les tuiles OpenStreetMap*/
@@ -130,7 +154,7 @@
         });
 
         // Gérer la soumission du formulaire
-        form.addEventListener("submit", (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const searchValue = searchInput.value;
 
@@ -165,7 +189,29 @@
                     alert("No matching residence found.");
                 }
             } else if (searchType.value === "address") {
-                console.log("Searching address:", searchValue);
+                // Appel à la fonction de géocodage pour gérer les adresses personnalisées
+                const coordinates = await geocodeAddress(searchValue);
+                if (coordinates) {
+                    const { lat, lon } = coordinates;
+
+                    // Centrer la carte sur l'adresse trouvée
+                    map.setView([lat, lon], 17);
+
+                    // Ajouter un marqueur à l'emplacement trouvé
+                    let newMarker = L.marker([lat, lon], {
+                        icon: customIcon, // Réutilise l'icône personnalisée définie précédemment
+                        title: searchValue,
+                    }).addTo(map);
+
+                    // Ajouter le nouveau marqueur à la liste des marqueurs
+                    markers.push(newMarker);
+
+                    // Ajouter un événement pour supprimer le marqueur au clic
+                    newMarker.on("click", function () {
+                        map.removeLayer(newMarker);
+                        markers = markers.filter((marker) => marker !== newMarker);
+                    });
+                }
             }
         });
 
