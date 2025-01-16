@@ -13,12 +13,8 @@
 
     <!-- Leaflet.js (Map Library) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-    <style>
-        #map { width: 90%; height: 600px; }
-    </style>
 
-    <!--Lien JS Leaflet (toujours après le lien CSS)-->
+    <!--Link JS Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     
     <script>
@@ -26,14 +22,14 @@
 
         async function fetchSchool() {
 
-            let rep = await fetch("/fr-esr-principaux-etablissements-enseignement-superieur@mesr.geojson")
+            let response = await fetch("/fr-esr-principaux-etablissements-enseignement-superieur@mesr.geojson")
         
-            if (!rep.ok) {
-                throw Error(rep.statusText);
+            if (!response.ok) {
+                throw Error(response.statusText);
             }
-            console.log(rep.status);
+            console.log(response.status);
 
-            let json = await rep.json();
+            let json = await response.json();
             console.log(json);
 
             return json;
@@ -42,21 +38,21 @@
 
         async function fetchHousing() {
 
-            let rep = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
+            let response = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
 
-            if (!rep.ok) {
-                throw Error(rep.statusText);
+            if (!response.ok) {
+                throw Error(response.statusText);
             }
-            console.log(rep.status);
+            console.log(response.status);
 
-            let json = await rep.json();
+            let json = await response.json();
             console.log(json);
 
             return json;
 
         }
 
-        // Fonction pour géocoder une adresse personnalisée
+        // Function to geocode a custom address
         async function geocodeAddress(address) {
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
             try {
@@ -81,14 +77,14 @@
 
         
         window.onload = async () => {
-            /*Crée un layer avec les tuiles OpenStreetMap*/
+            /*Create a layer with OpenStreetMap tiles */
             let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
                 maxZoom: 20,
                 attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 ext: 'png'
             });
 
-            /*Crée une map affichée dans le layer précédent, avec un zoom de 9 sur les coordonnées spécifiées*/
+            /*Create a map in the previous layer, with a zoom of 9 on the specific coordinates*/
             let map = L.map('map', {
                 center: [48.866667, 2.333333],
                 zoom: 9,
@@ -106,10 +102,10 @@
             let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
             let housingData = dataHousing.features.map(feature => feature.properties.title);
 
-            // Gestion des suggestions en fonction de l'entrée
+            // suggestions handling according to the input
             searchInput.addEventListener("input", () => {
                 const value = searchInput.value.toLowerCase();
-                suggestions.innerHTML = ""; // Réinitialiser les suggestions
+                suggestions.innerHTML = ""; // Reset suggestions
 
                 if (value.length > 0) {
                     let filteredResults = [];
@@ -119,31 +115,31 @@
                         filteredResults = housingData.filter(residence => residence.toLowerCase().startsWith(value));
                     }
 
-                    // 5 suggestions maximum
+                    // 5 suggestions max
                     filteredResults.slice(0, 5).forEach(result => {
                         const suggestionItem = document.createElement("li");
                         suggestionItem.textContent = result;
                         suggestionItem.classList.add("suggestion-item");
                         suggestionItem.addEventListener("click", () => {
-                            searchInput.value = result; // Remplir l'input avec la suggestion choisie
-                            suggestions.style.display = "none"; // Cacher les suggestions
+                            searchInput.value = result; // Fill the input with  the chosen suggestion
+                            suggestions.style.display = "none"; // Hide suggestions
                         });
                         suggestions.appendChild(suggestionItem);
                     });
 
-                    // Afficher ou cacher les suggestions en fonction des résultats
+                    // Display or hide suggestions to suit the results
                     suggestions.style.display = filteredResults.length > 0 ? "block" : "none";
                 } else {
-                    suggestions.style.display = "none"; // Cacher si aucun résultat
+                    suggestions.style.display = "none"; // Hide if no results
                 }
             });
 
 
-        // Gérer le type de recherche
+        // Handle the search type
         searchType.addEventListener("change", () => {
-            searchInput.value = ""; // Réinitialiser l'input
-            suggestions.innerHTML = ""; // Effacer les suggestions
-            suggestions.style.display = "none"; // Cacher les suggestions
+            searchInput.value = ""; // Reset the input
+            suggestions.innerHTML = ""; // Erase suggestions
+            suggestions.style.display = "none"; // Hide suggestions
 
             const placeholder = {
                 residence: "Enter the name of the residence...",
@@ -153,7 +149,7 @@
             searchInput.placeholder = placeholder[searchType.value];
         });
 
-        // Gérer la soumission du formulaire
+        // Handle the submission of the form 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const searchValue = searchInput.value;
@@ -189,24 +185,24 @@
                     alert("No matching residence found.");
                 }
             } else if (searchType.value === "address") {
-                // Appel à la fonction de géocodage pour gérer les adresses personnalisées
+                //Call the address geocoding function
                 const coordinates = await geocodeAddress(searchValue);
                 if (coordinates) {
                     const { lat, lon } = coordinates;
 
-                    // Centrer la carte sur l'adresse trouvée
+                    // Center the map on the location
                     map.setView([lat, lon], 17);
 
-                    // Ajouter un marqueur à l'emplacement trouvé
+                    // Add a marker to the location
                     let newMarker = L.marker([lat, lon], {
-                        icon: customIcon, // Réutilise l'icône personnalisée définie précédemment
+                        icon: customIcon, // Uses the icon for the click markers
                         title: searchValue,
                     }).addTo(map);
 
-                    // Ajouter le nouveau marqueur à la liste des marqueurs
+                    // Add the new marker to the list of markers
                     markers.push(newMarker);
 
-                    // Ajouter un événement pour supprimer le marqueur au clic
+                    // Add an event to remove the marker on click
                     newMarker.on("click", function () {
                         map.removeLayer(newMarker);
                         markers = markers.filter((marker) => marker !== newMarker);
@@ -215,12 +211,12 @@
             }
         });
 
-        // Cacher les suggestions lorsque le champ perd le focus
+        // Hide suggestions the field loses the focus
         searchInput.addEventListener("blur", () => {
             setTimeout(() => suggestions.style.display = "none", 200); // Délai pour permettre le clic sur une suggestion
         });
 
-        // Afficher les suggestions lorsque le champ regagne le focus
+        // Display suggestions when the field gains the focus
         searchInput.addEventListener("focus", () => {
             if (suggestions.children.length > 0) {
                 suggestions.style.display = "block";
@@ -374,7 +370,7 @@
                     <option value="address">Custom Address</option>
                 </select>
                 <input type="text" id="search-input" placeholder="Enter your search term..." autocomplete="off" />
-                <!-- Liste des suggestions générée dynamiquement -->
+                <!-- suggestions -->
                 <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
                 <button type="submit">Search</button>
             </form>
