@@ -79,21 +79,68 @@ main {
 
 #search-form {
     display: flex;
-    align-items: center; 
-    justify-content: center; 
-    max-width: 800px; 
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px; /* Slightly wider than before */
     margin: 0 auto;
-    position: relative;
-    padding-bottom: 1rem;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 50px; /* Rounded edges */    
 }
 
-#search-type,
-#search-input {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+/* Style for the dropdown (search type) */
+#search-type {
+    width: 150px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 50px 0 0 50px; /* Rounded left edge */
     font-size: 16px;
-    box-sizing: border-box;
+    color: #555; /* Slightly softer text color */
+    background-color: #f7f8fa; /* Light, modern background */
+    appearance: none; /* Remove default dropdown arrow */
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none; /* For Firefox */
+    position: relative; /* To position the custom arrow */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out; /* Smooth hover effect */
+}
+
+/* Hover Effect for the Dropdown */
+#search-type:hover {
+    background-color: #eef1f5; /* Slightly darker shade on hover */
+}
+
+/* Custom Dropdown Arrow */
+#search-type::after {
+    content: "▼"; /* Downward arrow */
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #888; /* Subtle arrow color */
+}
+
+/* Optional: Style Options in the Dropdown */
+#search-type option {
+    font-size: 16px;
+    color: #333;
+    background-color: #fff;
+    padding: 10px;
+}
+
+
+/* Input field */
+#search-input {
+    flex-grow: 1; /* Allow input to expand */
+    padding: 10px 15px;
+    border: none;
+    font-size: 16px;
+    color: #333;
+    outline: none;
+    background-color: #f9f9f9;
 }
 
 #search-type {
@@ -106,19 +153,24 @@ main {
     max-width: 400px;
 }
 
+/* Submit button */
 #search-form button {
     padding: 10px 20px;
-    margin-left: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #007bff;
+    background-color: #4c527c; /* Airbnb's pinkish-red */
     color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 0 50px 50px 0; /* Rounded right edge */
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 #search-form button:hover {
-    background-color: #0056b3;
+    background-color: #4c527c; /* Slightly darker on hover */
 }
+
+
 
 /* Suggestions Dropdown */
 #suggestions {
@@ -127,33 +179,53 @@ main {
     left: 0;
     width: 100%; 
     background-color: #fff;
-    border: 1px solid #ccc;
-    border-top: none;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    border-radius: 0 0 20px 20px; /* Rounded bottom corners */
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15); /* Softer shadow */
     list-style: none;
-    padding: 0;
+    padding: 5px 0; /* Add vertical padding for better spacing */
     margin: 0;
     z-index: 1000;
     box-sizing: border-box;
+    overflow: hidden; /* Prevent overflow when rounded corners are applied */
 }
 
+/* Suggestion Items */
 #suggestions .suggestion-item {
-    padding: 10px;
+    padding: 12px 20px; /* More space for a modern look */
     cursor: pointer;
-    border-bottom: 1px solid #eee;
-}
-
-#suggestions .suggestion-item:last-child {
-    border-bottom: none;
+    font-size: 16px;
+    color: #333;
+    background-color: #fff; /* Ensure consistent background */
+    transition: background-color 0.2s, transform 0.1s; /* Smooth hover animation */
 }
 
 #suggestions .suggestion-item:hover {
-    background-color: #f0f0f0;
+    background-color: #f9f9f9; /* Light gray on hover */
+    transform: translateX(5px); /* Subtle slide effect */
+}
+
+/* First and Last Items: Rounded Corners */
+#suggestions .suggestion-item:first-child {
+    border-radius: 20px 20px 0 0; /* Rounded top corners */
+}
+
+#suggestions .suggestion-item:last-child {
+    border-radius: 0 0 20px 20px; /* Rounded bottom corners */
+}
+
+/* Optional: Add Icons to Suggestions */
+#suggestions .suggestion-item::before {
+    content: "🔍"; /* Example icon */
+    margin-right: 10px;
+    font-size: 14px;
+    color: #888;
+    vertical-align: middle;
 }
 
 /* Map Section */
 #map-section {
-    
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 2rem;
