@@ -65,8 +65,9 @@
             return json;
 
         }
-
-        let housingMarkers = [];                                // Store all housing markers for filtering
+        
+        // Store all housing markers for filtering
+        let housingMarkers = [];                                
 
         // Create custom marker png with icon
         // function createCustomHousingIcon(feature, latlng) {
@@ -82,68 +83,7 @@
         //     return L.marker(latlng, { icon: myIcon, title: feature.properties.title });
         // }
 
-        // Create housing markers and apply filters
-        function createHousingMarkers(dataHousing, map) {
-            console.log("Applying filters and creating markers...");
-
-            // Clear existing markers
-            housingMarkers.forEach(marker => map.removeLayer(marker));
-            housingMarkers = [];
-
-            // Get selected filters (active icons)
-            const selectedFilters = Array.from(document.querySelectorAll(".filter-icon.active"))
-                .map(icon => icon.getAttribute('data-filter').toLowerCase());
-            console.log("Selected filters:", selectedFilters);
-
-            // Loop through housing data and create markers
-            dataHousing.features.forEach(feature => {
-                const { geometry, properties } = feature;
-
-                if (geometry && geometry.coordinates && properties.services) {
-                    const services = properties.services.toLowerCase();
-
-                    // Check if the housing matches all selected filters
-                    const matchesFilters = selectedFilters.every(filter => services.includes(filter));
-
-                    if (matchesFilters || selectedFilters.length === 0) {
-                        const [lng, lat] = geometry.coordinates;
-
-                        // Create marker with custom icon (using housing image URL as icon)
-                        const myIcon = createCustomIcon(properties.iconUrl || 'assets/marker_housing.png');  // Set a custom icon URL
-                        const marker = L.marker([lat, lng], { icon: myIcon, title: feature.properties.title })
-                            .bindPopup(createPopupContent(properties))  // Add dynamic content to the popup
-                            .addTo(map);
-
-                        housingMarkers.push(marker); // Add marker to array for future management
-                    }
-                }
-            });
-
-            console.log("Markers created:", housingMarkers.length);
-        }
-
-        // Toggle the filter when an icon is clicked
-        function toggleFilter(event, dataHousing, map) {
-            const icon = event.currentTarget; // Get the clicked icon
-            const isActive = icon.classList.contains('active'); // Check if the icon is already active
-
-            // Toggle the active state of the icon
-            if (isActive) {
-                icon.classList.remove('active'); // Remove the active class (filter deactivated)
-            } else {
-                icon.classList.add('active'); // Add the active class (filter activated)
-            }
-
-            // Apply filters based on the active icons
-            applyFilters(dataHousing, map);
-        }
-
-
-        // Apply filters to the map based on active icons
-        function applyFilters(dataHousing, map) {
-            console.log("Applying filters...");
-            createHousingMarkers(dataHousing, map); // Recreate housing markers based on the active filters
-        }
+        
                 
         
         /*****************     Create the Popup for each school and student housing     *****************/
@@ -410,7 +350,7 @@
 
                     // Add a marker to the location
                     let newMarker = L.marker([lat, lon], {
-                        icon: customIcon, // Uses the icon for the click markers
+                        icon: createCustomIcon('assets/marker_click.png'), // Uses the icon for the click markers
                         title: searchValue,
                     }).addTo(map);
 
@@ -469,6 +409,69 @@
         
         /*****************     Student Housing     *****************/
         
+        // Create housing markers and apply filters
+        function createHousingMarkers(dataHousing, map) {
+            console.log("Applying filters and creating markers...");
+
+            // Clear existing markers
+            housingMarkers.forEach(marker => map.removeLayer(marker));
+            housingMarkers = [];
+
+            // Get selected filters (active icons)
+            const selectedFilters = Array.from(document.querySelectorAll(".filter-icon.active"))
+                .map(icon => icon.getAttribute('data-filter').toLowerCase());
+            console.log("Selected filters:", selectedFilters);
+
+            // Loop through housing data and create markers
+            dataHousing.features.forEach(feature => {
+                const { geometry, properties } = feature;
+
+                if (geometry && geometry.coordinates && properties.services) {
+                    const services = properties.services.toLowerCase();
+
+                    // Check if the housing matches all selected filters
+                    const matchesFilters = selectedFilters.every(filter => services.includes(filter));
+
+                    if (matchesFilters || selectedFilters.length === 0) {
+                        const [lng, lat] = geometry.coordinates;
+
+                        // Create marker with custom icon (using housing image URL as icon)
+                        const myIcon = createCustomIcon(properties.iconUrl || 'assets/marker_housing.png');  // Set a custom icon URL
+                        const marker = L.marker([lat, lng], { icon: myIcon, title: feature.properties.title })
+                            .bindPopup(createPopupContent(properties))  // Add dynamic content to the popup
+                            .addTo(map);
+
+                        housingMarkers.push(marker); // Add marker to array for future management
+                    }
+                }
+            });
+
+            console.log("Markers created:", housingMarkers.length);
+        }
+
+        // Toggle the filter when an icon is clicked
+        function toggleFilter(event, dataHousing, map) {
+            const icon = event.currentTarget; // Get the clicked icon
+            const isActive = icon.classList.contains('active'); // Check if the icon is already active
+
+            // Toggle the active state of the icon
+            if (isActive) {
+                icon.classList.remove('active'); // Remove the active class (filter deactivated)
+            } else {
+                icon.classList.add('active'); // Add the active class (filter activated)
+            }
+
+            // Apply filters based on the active icons
+            applyFilters(dataHousing, map);
+        }
+
+
+        // Apply filters to the map based on active icons
+        function applyFilters(dataHousing, map) {
+            console.log("Applying filters...");
+            createHousingMarkers(dataHousing, map); // Recreate housing markers based on the active filters
+        }
+        
         if (dataHousing) {
             // Initial rendering of markers
             createHousingMarkers(dataHousing, map);
@@ -481,9 +484,9 @@
             });
         }
         
-        let myLayerSchoolOptions = {
-            pointToLayer: createCustomSchoolIcon
-        }
+        // let myLayerSchoolOptions = {
+        //     pointToLayer: createCustomSchoolIcon
+        // }
 
         // let myLayerHousingOptions = {
         //     pointToLayer: createCustomHousingIcon
@@ -491,43 +494,48 @@
     
         
 
-        let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
+        //let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
         //let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
 
         
         
         /*****************     Add markers to the map by clicking     *****************/
-        
+
         // Initialize an array to keep track of all markers
         let markers = [];
 
         // Define a custom icon for the markers
-        const customIcon = L.icon({
-            iconUrl: 'assets/marker_click.png', // URL of the custom icon image
-            iconSize: [35, 35], // Size of the icon [width, height]
-            iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
-        });
+        // const customIcon = L.icon({
+        //     iconUrl: 'assets/marker_click.png', // URL of the custom icon image
+        //     iconSize: [35, 35], // Size of the icon [width, height]
+        //     iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
+        // });
 
+        // Map click event to handle marker creation
         map.on('click', (event) => {
-            // Retrieve the latitude and longitude from the click event
+            
+            console.log('Map clicked at:', event.latlng);
+            // Get latitude and longitude of the clicked point
             let { lat, lng } = event.latlng;
 
-            // Create and add a marker at the clicked location with the custom icon
-            let newMarker = L.marker([lat, lng], { 
-                icon: customIcon, // Use the custom icon here
-                title: `Lat: ${lat}, Lng: ${lng}` 
+            console.log(`Creating marker at: ${lat}, ${lng}`);
+
+            // Create a new marker at the clicked location with the custom icon
+            let newMarker = L.marker([lat, lng], {
+                icon: createCustomIcon('assets/marker_click.png'), // Use the custom icon
+                title: `Lat: ${lat}, Lng: ${lng}` // Optional title
             }).addTo(map);
 
             // Add the new marker to the markers array
             markers.push(newMarker);
-            
-            // Add click event to the marker to remove it on the second click
+
+            // Optional: Add a click event to remove the marker when clicked
             newMarker.on('click', function () {
-                map.removeLayer(newMarker); // Remove marker from the map
-                markers = markers.filter(marker => marker !== newMarker); // Remove the marker from the array
+                map.removeLayer(newMarker); // Remove marker from map
+                markers = markers.filter(marker => marker !== newMarker); // Remove marker from the array
             });
-        
         });
+
 
         /*****************     Remove all markers by clicking on a button    *****************/
 
