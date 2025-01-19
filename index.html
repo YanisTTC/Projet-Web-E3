@@ -9,13 +9,13 @@
 
     <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="assets/styles.css">
-    <link rel="stylesheet" href="assets/css/map.css">
-
+    
     <!-- Leaflet.js (Map Library) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <!--Link JS Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     
     <script>
         "use strict";
@@ -36,6 +36,9 @@
 
         }
 
+        
+        /*****************     Student Housing     *****************/
+
         async function fetchHousing() {
 
             let response = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
@@ -52,7 +55,87 @@
 
         }
 
-        // Function to geocode a custom address
+        let housingMarkers = [];                                // Store all housing markers for filtering
+
+        // Create custom marker png with icon
+        function createCustomHousingIcon(feature, latlng) {
+            let myIcon = L.icon({
+                iconUrl: 'assets/marker_housing.png',
+                shadowUrl: 'assets/marker_housing.png',
+                iconSize: [35, 35],
+                shadowSize: [35, 20],
+                iconAnchor: [12, 12],
+                shadowAnchor: [12, 6],
+                popupAnchor: [0, 0]
+            });
+            return L.marker(latlng, { icon: myIcon, title: feature.properties.title });
+        }
+
+        // Create housing markers and apply filters
+        function createHousingMarkers(dataHousing, map) {
+            console.log("Applying filters and creating markers...");
+
+            // Clear existing markers
+            housingMarkers.forEach(marker => map.removeLayer(marker));
+            housingMarkers = [];
+
+            // Get selected filters (active icons)
+            const selectedFilters = Array.from(document.querySelectorAll(".filter-icon.active"))
+                .map(icon => icon.getAttribute('data-filter').toLowerCase());
+            console.log("Selected filters:", selectedFilters);
+
+            // Loop through housing data and create markers
+            dataHousing.features.forEach(feature => {
+                const { geometry, properties } = feature;
+
+                if (geometry && geometry.coordinates && properties.services) {
+                    const services = properties.services.toLowerCase();
+
+                    // Check if the housing matches all selected filters
+                    const matchesFilters = selectedFilters.every(filter => services.includes(filter));
+
+                    if (matchesFilters || selectedFilters.length === 0) {
+                        const [lng, lat] = geometry.coordinates;
+
+                        // Create marker with custom icon
+                        const marker = createCustomHousingIcon(feature, [lat, lng])
+                            .bindPopup(`<h3>${properties.title}</h3><p>${properties.services}</p>`)
+                            .addTo(map);
+
+                        housingMarkers.push(marker); // Add marker to array for future management
+                    }
+                }
+            });
+
+            console.log("Markers created:", housingMarkers.length);
+        }
+
+        // Toggle the filter when an icon is clicked
+        function toggleFilter(event, dataHousing, map) {
+            const icon = event.currentTarget; // Get the clicked icon
+            const isActive = icon.classList.contains('active'); // Check if the icon is already active
+
+            // Toggle the active state of the icon
+            if (isActive) {
+                icon.classList.remove('active'); // Remove the active class (filter deactivated)
+            } else {
+                icon.classList.add('active'); // Add the active class (filter activated)
+            }
+
+            // Apply filters based on the active icons
+            applyFilters(dataHousing, map);
+        }
+
+
+        // Apply filters to the map based on active icons
+        function applyFilters(dataHousing, map) {
+            console.log("Applying filters...");
+            createHousingMarkers(dataHousing, map); // Recreate housing markers based on the active filters
+        }
+                
+        
+        /*****************     Geocode a custom address     *****************/
+        
         async function geocodeAddress(address) {
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
             try {
@@ -76,6 +159,75 @@
         }
 
         
+        /*****************     Calculate distances using OpenRouteService API     *****************/
+        
+        async function calculateMatrixDistances(locations) {
+            const apiKey = "5b3ce3597851110001cf6248dbb2adb9062a4c6495d18767be27a734";
+            const url = "https://api.openrouteservice.org/v2/matrix/driving-car";
+
+            const body = {
+                locations: locations,
+                metrics: ["distance"], // You can also use "duration" if needed
+                units: "m"
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        "Authorization": apiKey
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Matrix Response:", data);
+                return data;
+            } catch (error) {
+                console.error("Error fetching Matrix API:", error);
+                alert("Failed to calculate distances. Please try again.");
+                return null;
+            }
+        }
+
+        // Process and display matrix results
+        function processMatrixResults(matrix, locations) {
+            const distances = matrix.distances;
+
+            distances.forEach((row, i) => {
+                row.forEach((distance, j) => {
+                    if (i !== j) {
+                        console.log(`Distance from location ${i} to ${j}: ${distance} meters`);
+                    }
+                });
+            });
+        }
+
+        // Display distances on the map
+        function displayDistancesOnMap(matrix, map, locations) {
+            const distances = matrix.distances;
+
+            distances.forEach((row, i) => {
+                row.forEach((distance, j) => {
+                    if (i !== j) {
+                        const start = locations[i];
+                        const end = locations[j];
+
+                        const polyline = L.polyline([start, end], { color: 'blue' });
+                        polyline.addTo(map);
+                    }
+                });
+            });
+}
+
+
+        // Run once the window is loaded
         window.onload = async () => {
             /*Create a layer with OpenStreetMap tiles */
             let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
@@ -87,7 +239,7 @@
             /*Create a map in the previous layer, with a zoom of 9 on the specific coordinates*/
             let map = L.map('map', {
                 center: [48.866667, 2.333333],
-                zoom: 9,
+                zoom: 7,
                 layers: [layer]
             });
 
@@ -98,7 +250,10 @@
             const searchInput = document.getElementById("search-input");
             const form = document.getElementById("search-form");
             const suggestions = document.getElementById("suggestions");
+            //const locations = prepareLocations(dataSchool, dataHousing);
+            //const distanceMatrix = await calculateDistances(locations);
 
+            
             let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
             let housingData = dataHousing.features.map(feature => feature.properties.title);
 
@@ -223,6 +378,8 @@
             }
         });
         
+        /*****************     Schools     *****************/
+        
         function createCustomSchoolIcon (feature, latlng) {
             let myIcon = L.icon({
             iconUrl: 'assets/ecole-icon.png',
@@ -236,37 +393,33 @@
             return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
         }
 
-        function createCustomHousingIcon (feature, latlng) {
-            let myIcon = L.icon({
-            iconUrl: 'assets/logement-icon.png',
-            shadowUrl: 'assets/logement-icon.png',
-            iconSize:     [35, 35], // width and height of the image in pixels
-            shadowSize:   [35, 20], // width, height of optional shadow image
-            iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-            shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-            popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-            })
-            return L.marker(latlng, { icon: myIcon , title: feature.properties.title})
+        
+        /*****************     Student Housing     *****************/
+        
+        if (dataHousing) {
+            // Initial rendering of markers
+            createHousingMarkers(dataHousing, map);
+
+            // Event listener for icon clicks
+            document.querySelectorAll(".filter-icon").forEach(icon => {
+                icon.addEventListener("click", (event) => {
+                    toggleFilter(event, dataHousing, map); // Toggle the filter on icon click
+                });
+            });
         }
-
-        /*
-        function createCustomFilter(feature) {
-            return feature.properties.e10_prix > 1.8 && feature.properties.id != 77140010 && feature.properties.id != 77140012;
-        }*/
-
         
         let myLayerSchoolOptions = {
             pointToLayer: createCustomSchoolIcon
         }
 
-        let myLayerHousingOptions = {
-            pointToLayer: createCustomHousingIcon
-        }
+        // let myLayerHousingOptions = {
+        //     pointToLayer: createCustomHousingIcon
+        // }
     
         
 
         let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
-        let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
+        //let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
 
         
         
@@ -369,12 +522,46 @@
                     <option value="residence">Student Residence</option>
                     <option value="address">Custom Address</option>
                 </select>
-                <input type="text" id="search-input" placeholder="Enter your search term..." autocomplete="off" />
+                <input type="text" id="search-input" placeholder=" ... " autocomplete="off" />
                 <!-- suggestions -->
                 <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
                 <button type="submit">Search</button>
-            </form>
+            </form>         
         </section>
+
+        <!-- Filters for the Student Housing -->
+        <section class="filter-section">
+            <div id="filter-student">
+                <h3>Filter Student housings by Services</h3>
+                <div id="filter-icons">
+                    <div class="filter-icon" data-filter="wifi">
+                        <img src="assets/icons-filter/wifi-3.png" alt="Wifi/Internet" />
+                        <p class="filter-label">Wifi/Internet</p>
+                    </div>
+                    <div class="filter-icon" data-filter="parking">
+                        <img src="assets/icons-filter/parking-3.png" alt="Parking" />
+                        <p class="filter-label">Parking</p>
+                    </div>
+                    <div class="filter-icon" data-filter="laverie">
+                        <img src="assets/icons-filter/laundry-3.png" alt="Laverie" />
+                        <p class="filter-label">Laverie</p>
+                    </div>
+                    <div class="filter-icon" data-filter="sport">
+                        <img src="assets/icons-filter/sport-4.png" alt="Sport" />
+                        <p class="filter-label">Sport</p>
+                    </div>
+                    <div class="filter-icon" data-filter="handicap">
+                        <img src="assets/icons-filter/handicap-1.png" alt="Handicap" />
+                        <p class="filter-label">Handicap</p>
+                    </div>
+                    <div class="filter-icon" data-filter="rest">
+                        <img src="assets/icons-filter/restaurant-4.png" alt="Restauration" />
+                        <p class="filter-label">Restauration</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         
 
         <!-- Map Section -->
