@@ -186,3 +186,93 @@ footer p {
     margin: 0;
     font-size: 0.9rem;
 }
+
+/****************** ICONS ******************/
+
+/* Center and style the heading */
+#filter-student h3 {
+    text-align: center; /* Center the heading */
+    color: #d3d3d3; /* Light gray color */
+    margin-bottom: 10px; /* Reduce space between the heading and icons */
+}
+
+/* Style the container of icons */
+#filter-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 60px; /* Space between the icons */
+    justify-content: center; /* Center the icons in the container */
+    align-items: center; /* Vertical alignment if needed */
+    margin-bottom: 20px; /* Add space between icons and the map */
+}
+
+/* Ensure icons fit properly */
+.filter-icon img {
+    max-width: 80%; /* Scale the image to fit within the container */
+    max-height: 80%; /* Prevent the image from overflowing vertically */
+    object-fit: contain; /* Ensure the entire image is visible inside the container */
+    display: block; /* Remove inline whitespace from images */
+    margin: 0 auto; /* Center the image within the icon container */
+    padding: 4px;
+}
+
+/* Container for filter icons */
+
+.filter-icon {
+    position: relative;
+    width: 40px; /* Define the size of the icon space */
+    height: 40px; /* Matches the width */
+    cursor: pointer;
+    border: 2px solid transparent; /* Default border style */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #f9f9f9; /* Default background color */
+    display: flex; /* Use flexbox for better alignment */
+    align-items: center; /* Center the image vertically */
+    justify-content: center; /* Center the image horizontally */
+    overflow: hidden; /* Prevent content from spilling outside the container */
+    transition: background-color 0.3s, border-color 0.3s;
+    margin: 10px; /* Space between individual icons */
+}
+
+/* Labels are hidden by default */
+.filter-label {
+    opacity: 0; /* Start as invisible */
+    position: absolute;
+    top: 100%; /* Position below the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8); /* Semi-transparent background for the label */
+    color: white; /* Text color */
+    padding: 5px 10px; /* Padding for readability */
+    border-radius: 5px; /* Rounded corners for the label */
+    white-space: nowrap; /* Prevent text wrapping */
+    font-size: 12px; /* Smaller font size */
+    margin-top: 5px; /* Space between the icon and the label */
+    visibility: hidden; /* Ensure it's not visible by default */
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth fade-in effect */
+}
+
+/* Show labels on hover */
+.filter-icon:hover .filter-label {
+    opacity: 1; /* Make visible */
+    visibility: visible; /* Allow visibility */
+}
+
+/* Highlight active filters */
+.filter-icon.active {
+    background-color: #007BFF; /* Active background color */
+    border-color: #0056b3; /* Active border color */
+    color: white; /* Text color for active state */
+}
+
+/* Add space between icons and the map */
+#filter-icons {
+    margin-bottom: 10px; /* Adjust this value for more or less space */
+}
+
+/* Highlight active filters */
+.filter-icon.active {
+    background-color: #272b30; /* Active background color */
+    border-color: #272b30; /* Active border color */
+    color: white; /* Text color for active state */
+}

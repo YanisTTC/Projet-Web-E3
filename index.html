@@ -56,7 +56,7 @@
 
         let housingMarkers = [];                                // Store all housing markers for filtering
 
-        // Create custom marker with icon
+        // Create custom marker png with icon
         function createCustomHousingIcon(feature, latlng) {
             let myIcon = L.icon({
                 iconUrl: 'assets/marker_housing.png',
@@ -78,12 +78,12 @@
             housingMarkers.forEach(marker => map.removeLayer(marker));
             housingMarkers = [];
 
-            // Get selected filters
-            const selectedFilters = Array.from(document.querySelectorAll(".service-filter:checked"))
-                .map(input => input.value.toLowerCase());
+            // Get selected filters (active icons)
+            const selectedFilters = Array.from(document.querySelectorAll(".filter-icon.active"))
+                .map(icon => icon.getAttribute('data-filter').toLowerCase());
             console.log("Selected filters:", selectedFilters);
 
-            // Loop through housing data
+            // Loop through housing data and create markers
             dataHousing.features.forEach(feature => {
                 const { geometry, properties } = feature;
 
@@ -109,10 +109,27 @@
             console.log("Markers created:", housingMarkers.length);
         }
 
-        // Apply filters on checkbox change
+        // Toggle the filter when an icon is clicked
+        function toggleFilter(event, dataHousing, map) {
+            const icon = event.currentTarget; // Get the clicked icon
+            const isActive = icon.classList.contains('active'); // Check if the icon is already active
+
+            // Toggle the active state of the icon
+            if (isActive) {
+                icon.classList.remove('active'); // Remove the active class (filter deactivated)
+            } else {
+                icon.classList.add('active'); // Add the active class (filter activated)
+            }
+
+            // Apply filters based on the active icons
+            applyFilters(dataHousing, map);
+        }
+
+
+        // Apply filters to the map based on active icons
         function applyFilters(dataHousing, map) {
             console.log("Applying filters...");
-            createHousingMarkers(dataHousing, map);
+            createHousingMarkers(dataHousing, map); // Recreate housing markers based on the active filters
         }
                 
         
@@ -209,7 +226,7 @@
 }
 
 
-        
+        // Run once the window is loaded
         window.onload = async () => {
             /*Create a layer with OpenStreetMap tiles */
             let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
@@ -382,9 +399,11 @@
             // Initial rendering of markers
             createHousingMarkers(dataHousing, map);
 
-            // Listen for filter changes
-            document.querySelectorAll(".service-filter").forEach(checkbox => {
-                checkbox.addEventListener("change", () => applyFilters(dataHousing, map));
+            // Event listener for icon clicks
+            document.querySelectorAll(".filter-icon").forEach(icon => {
+                icon.addEventListener("click", (event) => {
+                    toggleFilter(event, dataHousing, map); // Toggle the filter on icon click
+                });
             });
         }
         
@@ -512,15 +531,36 @@
         <!-- Filters for the Student Housing -->
         <section class="filter-section">
             <div id="filter-student">
-                <h3>Filter by Services</h3>
-                <label><input type="checkbox" value="Wifi" class="service-filter"> Wifi/Internet</label>
-                <label><input type="checkbox" value="Parking" class="service-filter"> Parking</label>
-                <label><input type="checkbox" value="laverie" class="service-filter"> Laverie</label>
-                <label><input type="checkbox" value="sport" class="service-filter"> Sport</label>
-                <label><input type="checkbox" value="handicap" class="service-filter"> Handicap</label>
-                <label><input type="checkbox" value="rest" class="service-filter"> Restauration</label>
+                <h3>Filter Student housings by Services</h3>
+                <div id="filter-icons">
+                    <div class="filter-icon" data-filter="wifi">
+                        <img src="assets/icons-filter/wifi-3.png" alt="Wifi/Internet" />
+                        <p class="filter-label">Wifi/Internet</p>
+                    </div>
+                    <div class="filter-icon" data-filter="parking">
+                        <img src="assets/icons-filter/parking-3.png" alt="Parking" />
+                        <p class="filter-label">Parking</p>
+                    </div>
+                    <div class="filter-icon" data-filter="laverie">
+                        <img src="assets/icons-filter/laundry-3.png" alt="Laverie" />
+                        <p class="filter-label">Laverie</p>
+                    </div>
+                    <div class="filter-icon" data-filter="sport">
+                        <img src="assets/icons-filter/sport-4.png" alt="Sport" />
+                        <p class="filter-label">Sport</p>
+                    </div>
+                    <div class="filter-icon" data-filter="handicap">
+                        <img src="assets/icons-filter/handicap-1.png" alt="Handicap" />
+                        <p class="filter-label">Handicap</p>
+                    </div>
+                    <div class="filter-icon" data-filter="rest">
+                        <img src="assets/icons-filter/restaurant-4.png" alt="Restauration" />
+                        <p class="filter-label">Restauration</p>
+                    </div>
+                </div>
             </div>
         </section>
+        
         
 
         <!-- Map Section -->
