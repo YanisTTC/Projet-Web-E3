@@ -76,6 +76,75 @@
         }
 
         
+        /*****************     Calculate distances using OpenRouteService API     *****************/
+        
+        async function calculateMatrixDistances(locations) {
+            const apiKey = "5b3ce3597851110001cf6248dbb2adb9062a4c6495d18767be27a734";
+            const url = "https://api.openrouteservice.org/v2/matrix/driving-car";
+
+            const body = {
+                locations: locations,
+                metrics: ["distance"], // You can also use "duration" if needed
+                units: "m"
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        "Authorization": apiKey
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Matrix Response:", data);
+                return data;
+            } catch (error) {
+                console.error("Error fetching Matrix API:", error);
+                alert("Failed to calculate distances. Please try again.");
+                return null;
+            }
+        }
+
+        // Process and display matrix results
+        function processMatrixResults(matrix, locations) {
+            const distances = matrix.distances;
+
+            distances.forEach((row, i) => {
+                row.forEach((distance, j) => {
+                    if (i !== j) {
+                        console.log(`Distance from location ${i} to ${j}: ${distance} meters`);
+                    }
+                });
+            });
+        }
+
+        // Display distances on the map
+        function displayDistancesOnMap(matrix, map, locations) {
+            const distances = matrix.distances;
+
+            distances.forEach((row, i) => {
+                row.forEach((distance, j) => {
+                    if (i !== j) {
+                        const start = locations[i];
+                        const end = locations[j];
+
+                        const polyline = L.polyline([start, end], { color: 'blue' });
+                        polyline.addTo(map);
+                    }
+                });
+            });
+}
+
+
+        
         window.onload = async () => {
             /*Create a layer with OpenStreetMap tiles */
             let layer = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', {
@@ -98,7 +167,11 @@
             const searchInput = document.getElementById("search-input");
             const form = document.getElementById("search-form");
             const suggestions = document.getElementById("suggestions");
+            //const locations = prepareLocations(dataSchool, dataHousing);
+            //const distanceMatrix = await calculateDistances(locations);
 
+
+            
             let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
             let housingData = dataHousing.features.map(feature => feature.properties.title);
 
@@ -373,7 +446,20 @@
                 <!-- suggestions -->
                 <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
                 <button type="submit">Search</button>
-            </form>
+            </form>         
+        </section>
+
+        <!-- Filters for the Student Housing -->
+        <section class="filter-section">
+            <div id="filter-student">
+                <h3>Filter by Services</h3>
+                <label><input type="checkbox" value="Wifi or Internet" class="service-filter"> Wifi/Internet</label>
+                <label><input type="checkbox" value="Parking" class="service-filter"> Parking</label>
+                <label><input type="checkbox" value="laverie" class="service-filter"> Laverie</label>
+                <label><input type="checkbox" value="sport" class="service-filter"> Sport</label>
+                <label><input type="checkbox" value="handicap" class="service-filter"> Handicap</label>
+                <label><input type="checkbox" value="restauration" class="service-filter"> Restauration</label>
+            </div>
         </section>
         
 
