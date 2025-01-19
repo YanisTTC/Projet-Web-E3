@@ -9,8 +9,7 @@
 
     <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="assets/styles.css">
-    <link rel="stylesheet" href="assets/css/map.css">
-
+    
     <!-- Leaflet.js (Map Library) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -36,6 +35,9 @@
 
         }
 
+        
+        /*****************     Student Housing     *****************/
+
         async function fetchHousing() {
 
             let response = await fetch("/fr_crous_logement_france_entiere@mesr.geojson")
@@ -52,7 +54,70 @@
 
         }
 
-        // Function to geocode a custom address
+        let housingMarkers = [];                                // Store all housing markers for filtering
+
+        // Create custom marker with icon
+        function createCustomHousingIcon(feature, latlng) {
+            let myIcon = L.icon({
+                iconUrl: 'assets/marker_housing.png',
+                shadowUrl: 'assets/marker_housing.png',
+                iconSize: [35, 35],
+                shadowSize: [35, 20],
+                iconAnchor: [12, 12],
+                shadowAnchor: [12, 6],
+                popupAnchor: [0, 0]
+            });
+            return L.marker(latlng, { icon: myIcon, title: feature.properties.title });
+        }
+
+        // Create housing markers and apply filters
+        function createHousingMarkers(dataHousing, map) {
+            console.log("Applying filters and creating markers...");
+
+            // Clear existing markers
+            housingMarkers.forEach(marker => map.removeLayer(marker));
+            housingMarkers = [];
+
+            // Get selected filters
+            const selectedFilters = Array.from(document.querySelectorAll(".service-filter:checked"))
+                .map(input => input.value.toLowerCase());
+            console.log("Selected filters:", selectedFilters);
+
+            // Loop through housing data
+            dataHousing.features.forEach(feature => {
+                const { geometry, properties } = feature;
+
+                if (geometry && geometry.coordinates && properties.services) {
+                    const services = properties.services.toLowerCase();
+
+                    // Check if the housing matches all selected filters
+                    const matchesFilters = selectedFilters.every(filter => services.includes(filter));
+
+                    if (matchesFilters || selectedFilters.length === 0) {
+                        const [lng, lat] = geometry.coordinates;
+
+                        // Create marker with custom icon
+                        const marker = createCustomHousingIcon(feature, [lat, lng])
+                            .bindPopup(`<h3>${properties.title}</h3><p>${properties.services}</p>`)
+                            .addTo(map);
+
+                        housingMarkers.push(marker); // Add marker to array for future management
+                    }
+                }
+            });
+
+            console.log("Markers created:", housingMarkers.length);
+        }
+
+        // Apply filters on checkbox change
+        function applyFilters(dataHousing, map) {
+            console.log("Applying filters...");
+            createHousingMarkers(dataHousing, map);
+        }
+                
+        
+        /*****************     Geocode a custom address     *****************/
+        
         async function geocodeAddress(address) {
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
             try {
@@ -156,7 +221,7 @@
             /*Create a map in the previous layer, with a zoom of 9 on the specific coordinates*/
             let map = L.map('map', {
                 center: [48.866667, 2.333333],
-                zoom: 9,
+                zoom: 7,
                 layers: [layer]
             });
 
@@ -169,7 +234,6 @@
             const suggestions = document.getElementById("suggestions");
             //const locations = prepareLocations(dataSchool, dataHousing);
             //const distanceMatrix = await calculateDistances(locations);
-
 
             
             let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
@@ -296,6 +360,8 @@
             }
         });
         
+        /*****************     Schools     *****************/
+        
         function createCustomSchoolIcon (feature, latlng) {
             let myIcon = L.icon({
             iconUrl: 'assets/ecole-icon.png',
@@ -309,37 +375,31 @@
             return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
         }
 
-        function createCustomHousingIcon (feature, latlng) {
-            let myIcon = L.icon({
-            iconUrl: 'assets/logement-icon.png',
-            shadowUrl: 'assets/logement-icon.png',
-            iconSize:     [35, 35], // width and height of the image in pixels
-            shadowSize:   [35, 20], // width, height of optional shadow image
-            iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-            shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-            popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-            })
-            return L.marker(latlng, { icon: myIcon , title: feature.properties.title})
+        
+        /*****************     Student Housing     *****************/
+        
+        if (dataHousing) {
+            // Initial rendering of markers
+            createHousingMarkers(dataHousing, map);
+
+            // Listen for filter changes
+            document.querySelectorAll(".service-filter").forEach(checkbox => {
+                checkbox.addEventListener("change", () => applyFilters(dataHousing, map));
+            });
         }
-
-        /*
-        function createCustomFilter(feature) {
-            return feature.properties.e10_prix > 1.8 && feature.properties.id != 77140010 && feature.properties.id != 77140012;
-        }*/
-
         
         let myLayerSchoolOptions = {
             pointToLayer: createCustomSchoolIcon
         }
 
-        let myLayerHousingOptions = {
-            pointToLayer: createCustomHousingIcon
-        }
+        // let myLayerHousingOptions = {
+        //     pointToLayer: createCustomHousingIcon
+        // }
     
         
 
         let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
-        let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
+        //let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
 
         
         
@@ -453,7 +513,7 @@
         <section class="filter-section">
             <div id="filter-student">
                 <h3>Filter by Services</h3>
-                <label><input type="checkbox" value="Wifi or Internet" class="service-filter"> Wifi/Internet</label>
+                <label><input type="checkbox" value="Wifi" class="service-filter"> Wifi/Internet</label>
                 <label><input type="checkbox" value="Parking" class="service-filter"> Parking</label>
                 <label><input type="checkbox" value="laverie" class="service-filter"> Laverie</label>
                 <label><input type="checkbox" value="sport" class="service-filter"> Sport</label>
