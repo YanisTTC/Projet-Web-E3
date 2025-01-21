@@ -253,8 +253,14 @@
             const routeCoordinates = decodePolyline(route.geometry);
             console.log("Coordinates formatted for Leaflet:", routeCoordinates);
 
+            // Get the total distance of the route (in kilometers)
+            const distanceInKm = (route.summary.distance / 1000).toFixed(2); // Convert meters to kilometers
+
             // Create a Leaflet polyline from the coordinates
             const routePolyline = L.polyline(routeCoordinates, { color: 'blue' });
+
+            // Add a tooltip to the polyline showing the distance
+            routePolyline.bindTooltip(`Distance: ${distanceInKm} km`, { permanent: false, direction: "top" });
 
             // Add the polyline to the map
             routePolyline.addTo(map);
