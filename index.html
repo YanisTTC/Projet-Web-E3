@@ -249,7 +249,7 @@
                 return;
             }
 
-            // Decode the encoded geometry into an array of coordinates
+            // Decode the encoded geometry inttps://api.openrouteservice.org/o an array of coordinates
             const routeCoordinates = decodePolyline(route.geometry);
             console.log("Coordinates formatted for Leaflet:", routeCoordinates);
 
@@ -267,7 +267,11 @@
 
             // Center the map on the route
             map.fitBounds(routePolyline.getBounds());
+
+            return routePolyline;
         }
+
+        let polylines = [];
 
         async function calculateDistanceBetweenMarkers(marker1, marker2, map) {
             const locations = [
@@ -278,7 +282,10 @@
             const routeData = await calculateRoute(locations);
 
             if (routeData) {
-                displayRouteOnMap(routeData, map); // Pass `map` here
+                const routePolyline = displayRouteOnMap(routeData, map); // Get the polyline
+                if (routePolyline) {
+                    polylines.push(routePolyline); // Store the polyline for future management
+                }
             }
         }
 
@@ -618,19 +625,15 @@
             markers = []; // Clear the markers array
         }
 
-        // Add a button to remove all markers
-        let button = L.control({ position: 'topright' });
-        button.onAdd = function () {
-            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '5px';
-            div.style.cursor = 'pointer';
-            div.innerHTML = 'Remove All Markers';
-            div.onclick = removeAllMarkers; // Attach the removeAllMarkers function to the button click
-            return div;
-        };
+        function removeAllPolylines() {
+            polylines.forEach(polyline => map.removeLayer(polyline)); // Remove each marker from the map
+            polylines = []; // Clear the markers array
+        }
 
-        button.onAdd = function () {
+        // Add a button to remove all markers
+        let removeMarkersButton = L.control({ position: 'topright' });
+
+        removeMarkersButton.onAdd = function () {
             let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
             div.style.backgroundColor = 'white';
             div.style.padding = '5px';
@@ -646,7 +649,28 @@
             return div;
         };
 
-        button.addTo(map);
+        removeMarkersButton.addTo(map);
+
+        // Add a button to remove all markers
+        let removePolylinesButton = L.control({ position: 'topright' });
+
+        removePolylinesButton.onAdd = function () {
+            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            div.style.backgroundColor = 'white';
+            div.style.padding = '5px';
+            div.style.cursor = 'pointer';
+            div.innerHTML = 'Remove All Routes';
+
+            // Prevent map click events when interacting with the button
+            L.DomEvent.on(div, 'click', function (e) {
+                L.DomEvent.stopPropagation(e); // Stop click propagation
+                removeAllPolylines(); // Call the function to remove all markers
+            });
+
+            return div;
+        };
+
+        removePolylinesButton.addTo(map);
 
         }; 
     </script>
