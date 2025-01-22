@@ -332,3 +332,11 @@ footer p {
     visibility: visible;
     transition: opacity 0.3s ease, visibility 0s ease 0s;
 }
+
+.leaflet-marker-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+.leaflet-marker-icon:hover {
+    transform: scale(1.1); /* Slight enlargement on hover */
+}

@@ -39,14 +39,15 @@
         
         /*****************     Create custumized icons for the markers     *****************/
         
-        function createCustomIcon(iconUrl) {
+        function createCustomIcon(iconUrl, size = [35, 35]) {
             return L.icon({
                 iconUrl,
-                iconSize: [35, 35],
-                iconAnchor: [12, 12],
-                popupAnchor: [0, -10]
+                iconSize: size, // Default size
+                iconAnchor: [size[0] / 2, size[1] / 2], // Center the icon
+                popupAnchor: [0, -size[1] / 2] // Position popup above the marker
             });
         }
+
         
         /*****************     Student Housing     *****************/
 
@@ -68,22 +69,6 @@
         
         // Store all housing markers for filtering
         let housingMarkers = [];                                
-
-        // Create custom marker png with icon
-        // function createCustomHousingIcon(feature, latlng) {
-        //     let myIcon = L.icon({
-        //         iconUrl: 'assets/marker_housing.png',
-        //         shadowUrl: 'assets/marker_housing.png',
-        //         iconSize: [35, 35],
-        //         shadowSize: [35, 20],
-        //         iconAnchor: [12, 12],
-        //         shadowAnchor: [12, 6],
-        //         popupAnchor: [0, 0]
-        //     });
-        //     return L.marker(latlng, { icon: myIcon, title: feature.properties.title });
-        // }
-
-        
                 
         
         /*****************     Create the Popup for each school and student housing     *****************/
@@ -443,28 +428,32 @@
         });
 
         /*****************     Schools     *****************/
-        
-        // function createCustomSchoolIcon (feature, latlng) {
-        //     let myIcon = L.icon({
-        //     iconUrl: 'assets/ecole-icon.png',
-        //     shadowUrl: 'assets/ecole-icon.png',
-        //     iconSize:     [35, 35], // width and height of the image in pixels
-        //     shadowSize:   [35, 20], // width, height of optional shadow image
-        //     iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-        //     shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-        //     popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-        //     })
-        //     return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
-        // }
 
         function createSchoolMarker(feature, latlng) {
-                let marker = L.marker(latlng, {
-                    icon: createCustomIcon('assets/marker_school.png'),
-                    title: feature.properties.name
-                });
-                marker.bindPopup(createPopupContent(feature.properties));
-                return marker;
-            }
+            const defaultIconUrl = 'assets/marker_school.png';
+            const hoverIconUrl = 'assets/marker_school_hover.png';
+
+            let marker = L.marker(latlng, {
+                icon: createCustomIcon(defaultIconUrl),
+                title: feature.properties.name
+            });
+
+            // Change icon on hover
+            marker.on('mouseover', function () {
+                this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon
+                this.setZIndexOffset(1000); // Bring to front
+            });
+
+            marker.on('mouseout', function () {
+                this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size
+                this.setZIndexOffset(0); // Reset z-index
+            });
+
+
+            marker.bindPopup(createPopupContent(feature.properties));
+            return marker;
+        }
+
 
         L.geoJSON(dataSchool, {
             pointToLayer: createSchoolMarker
@@ -499,19 +488,40 @@
                     if (matchesFilters || selectedFilters.length === 0) {
                         const [lng, lat] = geometry.coordinates;
 
-                        // Create marker with custom icon (using housing image URL as icon)
-                        const myIcon = createCustomIcon(properties.iconUrl || 'assets/marker_housing.png');  // Set a custom icon URL
-                        const marker = L.marker([lat, lng], { icon: myIcon, title: feature.properties.title })
-                            .bindPopup(createPopupContent(properties))  // Add dynamic content to the popup
-                            .addTo(map);
+                        // Define default and hover icons
+                        const defaultIconUrl = properties.iconUrl || 'assets/marker_housing.png';
+                        const hoverIconUrl = properties.hoverIconUrl || 'assets/marker_housing_hover.png';
 
-                        housingMarkers.push(marker); // Add marker to array for future management
+                        // Create marker with default icon
+                        const marker = L.marker([lat, lng], { 
+                            icon: createCustomIcon(defaultIconUrl), 
+                            title: feature.properties.title 
+                        });
+
+                        // Add hover effect
+                        marker.on('mouseover', function () {
+                            this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon
+                            this.setZIndexOffset(1000); // Bring to front
+                        });
+
+                        marker.on('mouseout', function () {
+                            this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size
+                            this.setZIndexOffset(0); // Reset z-index
+                        });
+
+
+                        // Add popup and marker to map
+                        marker.bindPopup(createPopupContent(properties)).addTo(map);
+
+                        // Add marker to the array for future management
+                        housingMarkers.push(marker);
                     }
                 }
             });
 
             console.log("Markers created:", housingMarkers.length);
         }
+
 
         // Toggle the filter when an icon is clicked
         function toggleFilter(event, dataHousing, map) {
