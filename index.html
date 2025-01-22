@@ -306,13 +306,6 @@
                 layers: [layer]
             });
 
-            // Exemple de deux marqueurs sur la carte
-            var marker1 = L.marker([48.8566, 2.3522]).addTo(map);  // Paris
-            var marker2 = L.marker([45.7640, 4.8357]).addTo(map);  // Un autre point à Paris
-
-            calculateDistanceBetweenMarkers(marker1, marker2, map);
-
-
 
             let dataSchool = await fetchSchool();
             let dataHousing = await fetchHousing();
