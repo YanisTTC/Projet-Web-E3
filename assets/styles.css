@@ -27,6 +27,7 @@ a:hover {
 }
 
 /* Header Styles */
+
 header {
     background: #333;
     color: #fff;
@@ -36,7 +37,7 @@ header {
 header nav {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center;        /* Vertically align items */
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
@@ -53,11 +54,69 @@ header nav ul {
     gap: 1rem;
     margin: 0;
     padding: 0;
+    font-size: 1.5rem;
+}
+
+header nav ul {
+    display: flex; /* Align list items in a row */
+    list-style: none; /* Remove default list styling */
+    margin: 0; /* Remove default margins */
+    padding: 0; /* Remove default padding */
+}
+
+nav ul li {
+    margin-right: 1rem; /* Add space between menu items */
+}
+
+nav ul li:last-child {
+    margin-right: 0; /* Remove margin for the last item */
 }
 
 header nav ul li a {
-    color: #fff;
-    font-size: 1rem;
+    color: lightgrey;
+    text-decoration: none; /* Remove underline */
+    font-size: 0.9rem;
+}
+
+header nav ul li a:hover {
+    color: white;
+}
+
+/* Language Selector */
+
+header nav .menu-language-wrapper {
+    margin-left: auto; /* Push the menu and language selector to the far right */
+    display: flex; /* Group the menu and language selector */
+    align-items: center; /* Ensure they are aligned vertically */
+    gap: 1rem; /* Add spacing between the menu and the language selector */
+}
+
+.language-selector {
+    display: inline-block;
+    margin-left: 1rem; /* Adjust spacing as needed */
+}
+
+.language-selector select {
+    background-color: transparent; /* Remove the box-like appearance */
+    color: lightgrey;
+    border: none; /* Remove border */
+    font-size: 0.9rem; /* Smaller text size */
+    cursor: pointer;
+    appearance: none; /* Remove default browser styling */
+    -webkit-appearance: none; /* Safari compatibility */
+    -moz-appearance: none; /* Firefox compatibility */
+    padding: 0; /* Remove extra padding */
+}
+
+/* Styling the dropdown options */
+.language-selector select option {
+    background-color: #333; /* Match header background */
+    color: lightgrey;
+}
+
+/* Optional: Style the dropdown arrow to match */
+.language-selector select::-ms-expand {
+    display: none; /* Hide the dropdown arrow for IE/Edge */
 }
 
 /* Main Content */
@@ -68,6 +127,7 @@ main {
 }
 
 .search-section {
+    position: relative;
     text-align: center;
     margin-bottom: 2rem;
 }
@@ -174,6 +234,7 @@ main {
 
 /* Suggestions Dropdown */
 #suggestions {
+    display: none;
     position: absolute;
     top: 100%; 
     left: 0;

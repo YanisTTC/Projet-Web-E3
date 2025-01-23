@@ -15,7 +15,7 @@
 
     <!--Link JS Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
+    
     
     <script>
         "use strict";
@@ -28,6 +28,7 @@
                 throw Error(response.statusText);
             }
             console.log(response.status);
+            console.log('pomme')
 
             let json = await response.json();
             console.log(json);
@@ -68,23 +69,7 @@
         
         // Store all housing markers for filtering
         let housingMarkers = [];                                
-
-        // Create custom marker png with icon
-        // function createCustomHousingIcon(feature, latlng) {
-        //     let myIcon = L.icon({
-        //         iconUrl: 'assets/marker_housing.png',
-        //         shadowUrl: 'assets/marker_housing.png',
-        //         iconSize: [35, 35],
-        //         shadowSize: [35, 20],
-        //         iconAnchor: [12, 12],
-        //         shadowAnchor: [12, 6],
-        //         popupAnchor: [0, 0]
-        //     });
-        //     return L.marker(latlng, { icon: myIcon, title: feature.properties.title });
-        // }
-
-        
-                
+       
         
         /*****************     Create the Popup for each school and student housing     *****************/
         
@@ -377,21 +362,6 @@
                 suggestions.style.display = "block";
             }
         });
-        
-        /*****************     Schools     *****************/
-        
-        // function createCustomSchoolIcon (feature, latlng) {
-        //     let myIcon = L.icon({
-        //     iconUrl: 'assets/ecole-icon.png',
-        //     shadowUrl: 'assets/ecole-icon.png',
-        //     iconSize:     [35, 35], // width and height of the image in pixels
-        //     shadowSize:   [35, 20], // width, height of optional shadow image
-        //     iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-        //     shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-        //     popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-        //     })
-        //     return L.marker(latlng, { icon: myIcon , title: feature.properties.uo_lib})
-        // }
 
         function createSchoolMarker(feature, latlng) {
                 let marker = L.marker(latlng, {
@@ -484,34 +454,12 @@
             });
         }
         
-        // let myLayerSchoolOptions = {
-        //     pointToLayer: createCustomSchoolIcon
-        // }
-
-        // let myLayerHousingOptions = {
-        //     pointToLayer: createCustomHousingIcon
-        // }
-    
-        
-
-        //let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
-        //let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
-
-        
         
         /*****************     Add markers to the map by clicking     *****************/
 
         // Initialize an array to keep track of all markers
         let markers = [];
 
-        // Define a custom icon for the markers
-        // const customIcon = L.icon({
-        //     iconUrl: 'assets/marker_click.png', // URL of the custom icon image
-        //     iconSize: [35, 35], // Size of the icon [width, height]
-        //     iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
-        // });
-
-        // Map click event to handle marker creation
         map.on('click', (event) => {
             
             console.log('Map clicked at:', event.latlng);
@@ -548,11 +496,6 @@
         let button = L.control({ position: 'topright' });
         button.onAdd = function () {
             let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            div.style.backgroundColor = 'white';
-            div.style.padding = '5px';
-            div.style.cursor = 'pointer';
-            div.innerHTML = 'Remove All Markers';
-            div.onclick = removeAllMarkers; // Attach the removeAllMarkers function to the button click
             return div;
         };
 
@@ -582,12 +525,17 @@
     <!-- Header Section -->
     <header>
         <nav>
-            <h1>Stud’Path</h1>
+            <h1 id="header-title">Stud’Path</h1>
             <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Contact</a></li>
+                <li id="home_menu"><a href="#">Home</a></li>
+                <li id="about_menu"><a href="#">About</a></li>
             </ul>
+            <div class="language">
+                <select id="language-selector">
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                </select>
+            </div>
         </nav>
     </header>
 
@@ -595,49 +543,50 @@
     <main>
         <!-- Search Form -->
         <section class="search-section">
-            <h2>Find Your Path</h2>
+            <h2 id="title"></h2>
+            <p id="description"></p>
             <form id="search-form">
-                <label for="search-type">Search by :</label>
+                <label for="search-type" id="search"></label>
                 <select id="search-type" name="search-type">
-                    <option value="school">School</option>
-                    <option value="residence">Student Residence</option>
-                    <option value="address">Custom Address</option>
+                    <option id="school_search" value="school" >School</option>
+                    <option value="residence" id="student_housing_search">Student Housing</option>
+                    <option value="address" id="custom_adsress_search">Custom Address</option>
                 </select>
                 <input type="text" id="search-input" placeholder=" ... " autocomplete="off" />
                 <!-- suggestions -->
                 <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
-                <button type="submit">Search</button>
+                <button type="submit" id="search_button">Search</button>
             </form>         
         </section>
 
         <!-- Filters for the Student Housing -->
         <section class="filter-section">
             <div id="filter-student">
-                <h3>Filter Student housings by Services</h3>
+                <h3 id="filter">Filter Student housings by Services</h3>
                 <div id="filter-icons">
                     <div class="filter-icon" data-filter="wifi">
                         <img src="assets/icons-filter/wifi-3.png" alt="Wifi/Internet" />
-                        <p class="filter-label">Wifi/Internet</p>
+                        <p class="filter-label" id="wifi">Wifi/Internet</p>
                     </div>
                     <div class="filter-icon" data-filter="parking">
                         <img src="assets/icons-filter/parking-3.png" alt="Parking" />
-                        <p class="filter-label">Parking</p>
+                        <p class="filter-label" id="parking">Parking</p>
                     </div>
                     <div class="filter-icon" data-filter="laverie">
                         <img src="assets/icons-filter/laundry-3.png" alt="Laverie" />
-                        <p class="filter-label">Laverie</p>
+                        <p class="filter-label" id="laverie">Laverie</p>
                     </div>
                     <div class="filter-icon" data-filter="sport">
                         <img src="assets/icons-filter/sport-4.png" alt="Sport" />
-                        <p class="filter-label">Sport</p>
+                        <p class="filter-label" id="sport">Sport</p>
                     </div>
                     <div class="filter-icon" data-filter="handicap">
                         <img src="assets/icons-filter/handicap-1.png" alt="Handicap" />
-                        <p class="filter-label">Handicap</p>
+                        <p class="filter-label" id="handicap">Handicap</p>
                     </div>
                     <div class="filter-icon" data-filter="rest">
                         <img src="assets/icons-filter/restaurant-4.png" alt="Restauration" />
-                        <p class="filter-label">Restauration</p>
+                        <p class="filter-label" id="rest">Restauration</p>
                     </div>
                 </div>
             </div>
@@ -655,6 +604,9 @@
     <footer>
         <p>&copy; 2025 Stud’Path </p>
     </footer>
+
+    <!-- Language Switcher (English / French) -->
+    <script src="language-switcher.js"></script>
 
 </body>
 </html>

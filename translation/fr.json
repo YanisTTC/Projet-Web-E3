@@ -1,0 +1,11 @@
+{
+    "title": "Stud'Path",
+    "description": "Trouvez des résidences étudiantes et des universités facilement",
+    "welcome_message": "Bienvenue sur Stud'Path!",
+    "search_placeholder": {
+      "residence": "Entrez le nom de la résidence...",
+      "address": "Entrez une adresse personnalisée...",
+      "school": "Entrez le nom de l'école..."
+    }
+  }
+  
