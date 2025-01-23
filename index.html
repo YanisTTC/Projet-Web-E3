@@ -74,7 +74,7 @@
         /*****************     Create the Popup for each school and student housing     *****************/
         
         function createPopupContent(properties) {
-            const photo = properties.photo ? properties.photo.replace(/\\/g, '') : 'assets/images/default.jpg';
+            const photo = properties.photo ? properties.photo.replace(/\\/g, '') : 'assets/default.jpg';
 
             // Dynamically construct content based on the available properties
             const lines = [];
@@ -112,7 +112,7 @@
             return `
                 <div>
                     <img src="${photo}" alt="Photo" style="width: 100%; height: auto; margin-bottom: 10px;" 
-                        onerror="this.src='assets/images/default.jpg';">
+                        onerror="this.src='assets/default.jpg';">
                     ${lines.join('')}
                 </div>
             `;
