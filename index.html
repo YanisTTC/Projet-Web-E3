@@ -247,6 +247,10 @@
             // Add a tooltip to the polyline showing the distance
             routePolyline.bindTooltip(`Distance: ${distanceInKm} km`, { permanent: false, direction: "top" });
 
+            routePolyline.on("click", function () {
+                map.removeLayer(routePolyline); 
+                polylines = polylines.filter(polyline => polyline !== routePolyline); 
+            });
             // Add the polyline to the map
             routePolyline.addTo(map);
 
@@ -268,9 +272,9 @@
 
             if (routeData) {
                 const routePolyline = displayRouteOnMap(routeData, map); // Get the polyline
-                if (routePolyline) {
-                    polylines.push(routePolyline); // Store the polyline for future management
-                }
+                console.log('salut');
+                polylines.push(routePolyline); // Store the polyline for future management
+                
             }
         }
 
@@ -299,12 +303,29 @@
             const searchInput = document.getElementById("search-input");
             const form = document.getElementById("search-form");
             const suggestions = document.getElementById("suggestions");
+            const distanceList = document.getElementById("distance-list");
             //const locations = prepareLocations(dataSchool, dataHousing);
             //const distanceMatrix = await calculateDistances(locations);
 
+            const sidebar = document.getElementById('sidebar');
+            const toggleButton = document.getElementById('sidebar-toggle');
+
+            // verify if the elements exist
+            if (sidebar && toggleButton) {
+                // display or hide the distance window
+                toggleButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    toggleButton.textContent = sidebar.classList.contains('collapsed') ? '>' : '<';
+                });
+            } else {
+                console.error('Sidebar or toggle button not found!');
+            }
+
+
+
             
-            let schoolData = dataSchool.features.map(feature => feature.properties.uo_lib);
-            let housingData = dataHousing.features.map(feature => feature.properties.title);
+            let schoolsName = dataSchool.features.map(feature => feature.properties.uo_lib);
+            let housingsName = dataHousing.features.map(feature => feature.properties.title);
 
             // suggestions handling according to the input
             searchInput.addEventListener("input", () => {
@@ -314,9 +335,9 @@
                 if (value.length > 0) {
                     let filteredResults = [];
                     if (searchType.value === "school") {
-                        filteredResults = schoolData.filter(school => school.toLowerCase().startsWith(value));
+                        filteredResults = schoolsName.filter(school => school.toLowerCase().startsWith(value));
                     } else if (searchType.value === "residence") {
-                        filteredResults = housingData.filter(residence => residence.toLowerCase().startsWith(value));
+                        filteredResults = housingsName.filter(residence => residence.toLowerCase().startsWith(value));
                     }
 
                     // 5 suggestions max
@@ -366,7 +387,7 @@
                     const { geometry } = matchedSchool;
                     if (geometry && geometry.coordinates) {
                         const [lng, lat] = geometry.coordinates;
-                        map.setView([lat, lng], 13); // zoom on the school
+                        map.setView([lat, lng], 17); // zoom on the school
                     } else {
                         alert("Coordinates not available for the selected school.");
                     }
@@ -381,7 +402,7 @@
                     const { geometry } = matchedResidence;
                     if (geometry && geometry.coordinates) {
                         const [lng, lat] = geometry.coordinates;
-                        map.setView([lat, lng], 13); // zoom on the residence
+                        map.setView([lat, lng], 17); // zoom on the residence
                     } else {
                         alert("Coordinates not available for the selected residence.");
                     }
@@ -504,11 +525,9 @@
                     if (matchesFilters || selectedFilters.length === 0) {
                         const [lng, lat] = geometry.coordinates;
 
-                        // Define default and hover icons
                         const defaultIconUrl = properties.iconUrl || 'assets/marker_housing.png';
                         const hoverIconUrl = properties.hoverIconUrl || 'assets/marker_housing_hover.png';
 
-                        // Create marker with default icon
                         const marker = L.marker([lat, lng], { 
                             icon: createCustomIcon(defaultIconUrl), 
                             title: feature.properties.title 
@@ -573,36 +592,20 @@
                 });
             });
         }
-        
-        // let myLayerSchoolOptions = {
-        //     pointToLayer: createCustomSchoolIcon
-        // }
 
-        // let myLayerHousingOptions = {
-        //     pointToLayer: createCustomHousingIcon
-        // }
-    
-        
-
-        //let schools = L.geoJSON(dataSchool,myLayerSchoolOptions).addTo(map);
-        //let housing = L.geoJSON(dataHousing,myLayerHousingOptions).addTo(map);
-
-        
-        
         /*****************     Add markers to the map by clicking     *****************/
 
         // Initialize an array to keep track of all markers
         let markers = [];
 
-        // Define a custom icon for the markers
-        // const customIcon = L.icon({
-        //     iconUrl: 'assets/marker_click.png', // URL of the custom icon image
-        //     iconSize: [35, 35], // Size of the icon [width, height]
-        //     iconAnchor: [12, 12], // Anchor point of the icon [horizontal, vertical]
-        // });
-
         // Map click event to handle marker creation
         map.on('click', (event) => {
+
+            if (event.originalEvent.target.tagName === 'path') {
+                console.log("Click on polyline detected, skipping marker creation.");
+                return; // Ignore the click if its on a route/polyline
+            }
+
             console.log('Map clicked at:', event.latlng);
 
             // Get latitude and longitude of the clicked point
@@ -644,17 +647,57 @@
             });
         });
 
+        /*********** Routes & distances ***/
 
         // route creation between the last two custom markers
-        function handleRouteCreation(newMarker) {
-            if (markers.length > 1) {
-                const lastMarker = markers[markers.length - 2]; // Second last marker
-                calculateDistanceBetweenMarkers(lastMarker, newMarker, map); // Create route
+        async function handleRouteCreation(newMarker) {
+            if (markers.length < 2) return; 
+
+            const marker1 = markers[markers.length - 2];
+            const marker2 = newMarker;
+
+            const locations = [
+                [marker1.getLatLng().lng, marker1.getLatLng().lat],
+                [marker2.getLatLng().lng, marker2.getLatLng().lat],
+            ];
+
+            const routeData = await calculateDistanceBetweenMarkers(marker1,marker2,map);
+            if (routeData) {
+                const route = routeData.routes[0];
+                const distanceInKm = (route.summary.distance / 1000).toFixed(2);
+
+                // display the route on the map
+                const routePolyline = displayRouteOnMap(routeData, map);
+
+                // add the distance in the distance window
+                addDistanceToSidebar(marker1, marker2, distanceInKm);
+
+                // remove the route when you click on it
+                routePolyline.on("click", () => {
+                    map.removeLayer(routePolyline); 
+                });
             }
         }
 
+        // add the distance in the distance window
+        function addDistanceToSidebar(marker1, marker2, distance) {
+            const listItem = document.createElement("li");
+            listItem.textContent = `Distance between (${marker1.getLatLng().lat.toFixed(2)}, ${marker1.getLatLng().lng.toFixed(2)}) and (${marker2.getLatLng().lat.toFixed(2)}, ${marker2.getLatLng().lng.toFixed(2)}): ${distance} km`;
 
-        /*****************     Remove all markers by clicking on a button    *****************/
+            // button to remove the line
+            const removeButton = document.createElement("button");
+            removeButton.textContent = "Remove";
+            removeButton.style.marginLeft = "10px";
+            removeButton.onclick = () => {
+                listItem.remove(); 
+            };
+
+            listItem.appendChild(removeButton);
+            distanceList.appendChild(listItem);
+        }
+
+
+        /*****************     Remove all markers and routes by clicking on a button    *****************/
 
         function removeAllMarkers() {
             markers.forEach(marker => map.removeLayer(marker)); // Remove each marker from the map
@@ -662,8 +705,11 @@
         }
 
         function removeAllPolylines() {
+            console.log("Removing all polylines:", polylines);
             polylines.forEach(polyline => map.removeLayer(polyline)); // Remove each marker from the map
             polylines = []; // Clear the markers array
+
+            console.log("All polylines removed.");
         }
 
         // Add a button to remove all markers
@@ -700,7 +746,7 @@
             // Prevent map click events when interacting with the button
             L.DomEvent.on(div, 'click', function (e) {
                 L.DomEvent.stopPropagation(e); // Stop click propagation
-                removeAllPolylines(); // Call the function to remove all markers
+                removeAllPolylines(); // Call the function to remove all routes
             });
 
             return div;
@@ -777,12 +823,19 @@
             </div>
         </section>
         
-        
+        <div id="map-section">
+            <div id="sidebar">
+                <button id="sidebar-toggle">&lt;</button>
+                <h2 id="distance-title">Distance</h2>
 
-        <!-- Map Section -->
-        <section id="map-section">
+                <ul id="distance-list">
+
+                </ul>
+            </div>
             <div id="map"></div>
-        </section>
+        </div>
+                    
+        
     </main>
 
     <!-- Footer -->
