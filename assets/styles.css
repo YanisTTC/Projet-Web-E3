@@ -140,8 +140,9 @@ main {
     padding: 0 1rem;
 }
 
+/* Search Bar */
 .search-section {
-    position: relative;
+    position: relative; /* DON'T TOUCH IT */
     text-align: center;
     margin-bottom: 2rem;
 }
@@ -164,15 +165,74 @@ main {
     border-radius: 50px; /* Rounded edges */    
 }
 
-/* Style for the dropdown (search type) */
+#search-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Space out the children equally */
+    gap: 10px; /* Add spacing between the items */
+    width: 100%;
+    padding: 10px 20px; 
+    box-sizing: border-box;
+}
+
+#search-container label {
+    font-size: 13px; /* Set a consistent font size */
+    font-weight: normal; /* Optional: Adjust the weight if needed */
+    color: #333; /* Optional: Ensure consistent color */
+}
+
+#search-container > div {
+    display: flex;
+    align-items: left; /* Center vertically */
+}
+
+.search-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-right: 10px; /* Optional: Adjust spacing */
+}
+
+.search-fields {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.search-fields label {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.search-label,
+.search-fields {
+    display: flex;
+    flex-direction: column; /* Stack the label and the input vertically */
+    align-items: flex-start; /* Align label with input */
+}
+
+.search-label label,
+.search-fields label {
+    margin-bottom: 5px; /* Add space between label and input */
+    font-size: 16px; /* Ensure consistent font size */
+}
+
+#search-type,
+#search-input {
+    width: 100%; /* Take up full width of the container */
+    box-sizing: border-box; /* Prevent padding from affecting the size */
+}
+
 #search-type {
-    width: 150px;
+    margin-right: 10px;
+    width: 200px;
     padding: 10px 15px;
     border: none;
-    border-radius: 50px 0 0 50px; /* Rounded left edge */
-    font-size: 16px;
+    border-radius: 50px; /* Rounded left edge */
+    font-size: 12px;
     color: #555; /* Slightly softer text color */
-    background-color: #f7f8fa; /* Light, modern background */
+    background-color: white; /* Light, modern background */
     appearance: none; /* Remove default dropdown arrow */
     -webkit-appearance: none; /* For Safari */
     -moz-appearance: none; /* For Firefox */
@@ -181,13 +241,11 @@ main {
     transition: all 0.2s ease-in-out; /* Smooth hover effect */
 }
 
-/* Hover Effect for the Dropdown */
 #search-type:hover {
     background-color: #eef1f5; /* Slightly darker shade on hover */
 }
 
-/* Custom Dropdown Arrow */
-#search-type::after {
+#search-type::after {   /* Custom Dropdown Arrow */
     content: "▼"; /* Downward arrow */
     position: absolute;
     right: 10px;
@@ -197,7 +255,6 @@ main {
     color: #888; /* Subtle arrow color */
 }
 
-/* Optional: Style Options in the Dropdown */
 #search-type option {
     font-size: 16px;
     color: #333;
@@ -206,20 +263,17 @@ main {
 }
 
 
-/* Input field */
 #search-input {
     flex-grow: 1; /* Allow input to expand */
     padding: 10px 15px;
-    border: none;
-    font-size: 16px;
+    border: none; 
+    /* border: 1px solid #ddd; */
+    /* border-radius: 25px; */
+
+    font-size: 14px;
     color: #333;
     outline: none;
-    background-color: #f9f9f9;
-}
-
-#search-type {
-    margin-right: 10px;
-    width: 200px;
+    background-color: white;
 }
 
 #search-input {
@@ -227,26 +281,33 @@ main {
     max-width: 400px;
 }
 
+.search-button {
+    display: flex;
+    align-items: center;
+}
+
 /* Submit button */
 #search-form button {
     padding: 10px 20px;
-    background-color: #4c527c; /* Airbnb's pinkish-red */
+    background-color: #333; /* Airbnb's pinkish-red */
     color: white;
     font-size: 16px;
     font-weight: bold;
     border: none;
-    border-radius: 0 50px 50px 0; /* Rounded right edge */
+    /* border-radius: 0 50px 50px 0;  */
+    border-radius: 0 25px 25px 0;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 #search-form button:hover {
-    background-color: #4c527c; /* Slightly darker on hover */
+    background-color: #3e476d; /* Slightly darker on hover */
 }
 
 
 
 /* Suggestions Dropdown */
+
 #suggestions {
     display: none;
     position: absolute;

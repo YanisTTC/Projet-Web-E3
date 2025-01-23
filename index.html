@@ -719,16 +719,27 @@
             <h2 id="title"></h2>
             <p id="description"></p>
             <form id="search-form">
-                <label for="search-type" id="search"></label>
-                <select id="search-type" name="search-type">
-                    <option id="school_search" value="school" >School</option>
-                    <option value="residence" id="student_housing_search">Student Housing</option>
-                    <option value="address" id="custom_adsress_search">Custom Address</option>
-                </select>
-                <input type="text" id="search-input" placeholder=" ... " autocomplete="off" />
-                <!-- suggestions -->
-                <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
-                <button type="submit" id="search_button">Search</button>
+                <div id="search-container">
+                    <div class="search-label">
+                        <label for="search-type" id="search"></label>
+                        <select id="search-type" name="search-type">
+                            <option id="school_search" value="school" >School</option>
+                            <option value="residence" id="student_housing_search">Student Housing</option>
+                            <option value="address" id="custom_adsress_search">Custom Address</option>
+                        </select>
+                    </div>
+                    <div class="search-fields">
+                        <label for="search-input">Type your search:</label>
+                        <input type="text" id="search-input" placeholder=" Enter your search... " autocomplete="off" />
+                        <!-- suggestions -->
+                        <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
+                    </div>
+                    <div>
+                        <button type="submit" id="search_button">
+                            <img src="assets/icons-searchBar/search-icon.png" alt="Search" />
+                        </button>
+                    </div>
+                </div>
             </form>         
         </section>
 
