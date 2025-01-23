@@ -27,16 +27,17 @@ a:hover {
 }
 
 /* Header Styles */
+
 header {
     background: #333;
-    color: #fff;
+    color: lightgray;
     padding: 1rem 0;
 }
 
 header nav {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center;        /* Vertically align items */
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
@@ -45,20 +46,92 @@ header nav {
 header nav h1 {
     margin: 0;
     font-size: 1.8rem;
+    color: #fff;
 }
 
 header nav ul {
     list-style: none;
     display: flex;
+    align-items: center;
     gap: 1rem;
     margin: 0;
     padding: 0;
+    font-size: 0.9rem;
+}
+
+header nav ul {
+    display: flex; /* Align list items in a row */
+    list-style: none; /* Remove default list styling */
+    margin: 0; /* Remove default margins */
+    padding: 0; /* Remove default padding */
+}
+
+nav ul li {
+    margin-right: 1rem; /* Add space between menu items */
+}
+
+nav ul li:last-child {
+    margin-right: 0; /* Remove margin for the last item */
 }
 
 header nav ul li a {
-    color: #fff;
-    font-size: 1rem;
+    color: lightgrey;
+    text-decoration: none; /* Remove underline */
+    font-size: 0.9rem;
 }
+
+header nav ul li a:hover {
+    color: white;
+}
+
+/* Language Selector */
+
+header nav .language {
+    display: flex;
+    align-items: center;
+    position: relative; /* Needed for positioning the custom dropdown arrow */
+    display: inline-block;
+    margin-left: auto; /* Push the language selector to the far right if needed */
+}
+
+header nav .language select {
+    display: inline-block;
+    background-color: transparent; /* Remove the box appearance */
+    background: none; /* Transparent background */
+    color: lightgrey;
+    border: none; 
+    font-size: 0.9rem; /* Match the font size */
+    cursor: pointer;
+    appearance: none; 
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none; /* For Firefox */
+    padding: 0.3rem 1.5rem 0.3rem 0.5rem; /* Adjust spacing */
+    text-align-last: right; /* Align text to the right */
+    line-height: normal; /* Ensure consistent height with links */
+}
+
+header nav .language select option {
+    background-color: #333; /* Match header background */
+    color: lightgrey;
+}
+
+header nav .language select::-ms-expand {
+    display: none; /* Hide the dropdown arrow for IE/Edge */
+}
+
+/* Custom dropdown arrow */
+header nav .language::after {
+    content: "▼"; /* Unicode for a down arrow */
+    font-size: 0.6rem; /* Smaller arrow */
+    color: lightgrey; /* Match text color */
+    position: absolute;
+    top: 50%; /* Center vertically */
+    right: 0.5rem; /* Align with the select box */
+    transform: translateY(-50%);
+    pointer-events: none; /* Ensure it doesn’t interfere with clicks */
+}
+
+
 
 /* Main Content */
 main {
