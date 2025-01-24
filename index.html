@@ -297,7 +297,7 @@
             let dataHousing = await fetchHousing();
 
             const searchType = document.getElementById("search-type");
-            const searchInput = document.getElementById("search-input");
+            const searchInput = document.getElementById("search_input");
             const form = document.getElementById("search-form");
             const suggestions = document.getElementById("suggestions");
             //const locations = prepareLocations(dataSchool, dataHousing);
@@ -729,12 +729,12 @@
                         </select>
                     </div>
                     <div class="search-fields">
-                        <label for="search-input">Type your search:</label>
-                        <input type="text" id="search-input" placeholder=" Enter your search... " autocomplete="off" />
+                        <label for="search_input" id="search_input_prompt">Type your search:</label>
+                        <input type="text" id="search_input" placeholder=" Enter your search... " autocomplete="off" />
                         <!-- suggestions -->
                         <ul id="suggestions" style="position: absolute; z-index: 1000;"></ul>
                     </div>
-                    <div>
+                    <div class="search-button">
                         <button type="submit" id="search_button">
                             <img src="assets/icons-searchBar/search-icon.png" alt="Search" />
                         </button>
