@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stud’Path - Find student residences and universities with ease">
+    <title id="title">About Us - Stud'Path</title>
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="assets/styles.css">
+    
+    <!-- Language Switcher -->
+    <script>
+      const content = {
+        en: {
+          title: "Find Your Path",
+          home_menu: "Home",
+          about_menu: "About",
+          school_search: "School",
+          student_housing_search: "Student Housing",
+          custom_address_search: "Custom Address",
+          search_prompt: "Type your search:",
+          search_input: "Enter your search...",
+          mission: "Our Mission",
+          mission_text: "At Stud’Path, our mission is to provide an intuitive platform that makes education-related decisions simpler. From searching for the perfect school to locating student-friendly housing and amenities, we are committed to providing reliable, real-time information to support your educational journey.",
+          offer: "What We Offer",
+          offer_list: [
+            "School Finder: Easily search for schools by name or location with detailed information and interactive maps.",
+            "Student Housing: Find student housing options that match your preferences, with the ability to filter based on services and facilities.",
+            "Interactive Maps: A map system that lets you explore your surroundings, whether it’s finding schools or student housing.",
+            "Custom Search: Search by residence, address, or school to narrow down your options based on your specific needs."
+          ],
+          choose_us: "Why Choose Stud’Path?",
+          choose_us_list: [
+            "Comprehensive Data: Access a vast database of schools and housing options, all available at your fingertips.",
+            "Customized Search Options: Our platform allows you to tailor your search to fit your unique needs, ensuring you find exactly what you're looking for.",
+            "User-Friendly Interface: Navigate effortlessly through our intuitive platform designed with your convenience in mind.",
+            "Real-Time Information: Stay updated with the latest data and availability for schools and housing."
+          ],
+          
+        },
+        fr: {
+          title: "Trouvez votre chemin",
+          home_menu: "Accueil",
+          about_menu: "À propos",
+          school_search: "École",
+          student_housing_search: "Logement étudiant",
+          custom_address_search: "Adresse personnalisée",
+          search_prompt: "Tapez votre recherche :",
+          search_input: "Entrez votre recherche...",
+          mission: "Notre mission",
+          mission_text: "Chez Stud’Path, notre mission est de fournir une plateforme intuitive qui simplifie les décisions liées à l'éducation. De la recherche de l'école parfaite à la localisation de logements étudiants et d'aménagements, nous nous engageons à fournir des informations fiables et en temps réel pour soutenir votre parcours éducatif.",
+          offer: "Ce que nous offrons",
+          offer_list: [
+            "Trouver une école : Recherchez facilement des écoles par nom ou emplacement avec des informations détaillées et des cartes interactives.",
+            "Logement étudiant : Trouvez des options de logement étudiant correspondant à vos préférences, avec la possibilité de filtrer selon les services et installations.",
+            "Cartes interactives : Un système de cartes qui vous permet d'explorer votre environnement, que ce soit pour trouver des écoles ou des logements étudiants.",
+            "Recherche personnalisée : Recherchez par résidence, adresse ou école pour affiner vos options en fonction de vos besoins spécifiques."
+          ],
+          choose_us: "Pourquoi choisir Stud’Path ?",
+          choose_us_list: [
+            "Données complètes : Accédez à une vaste base de données d'écoles et d'options de logement, toutes disponibles à portée de main.",
+            "Options de recherche personnalisées : Notre plateforme vous permet d'adapter votre recherche à vos besoins uniques, vous assurant de trouver exactement ce que vous cherchez.",
+            "Interface conviviale : Naviguez sans effort sur notre plateforme intuitive conçue pour votre confort.",
+            "Informations en temps réel : Restez informé des dernières données et disponibilités des écoles et des logements."
+          ],
+          
+        }
+      };
+
+      function updateLanguage(language) {
+        document.getElementById('title').textContent = content[language].title;
+        document.getElementById('home_menu').textContent = content[language].home_menu;
+        document.getElementById('about_menu').textContent = content[language].about_menu;
+        document.getElementById('mission').textContent = content[language].mission;
+        document.getElementById('mission_text').textContent = content[language].mission_text;
+        document.getElementById('offer').textContent = content[language].offer;
+        document.getElementById('choose_us').textContent = content[language].choose_us;
+        
+        let offerList = document.getElementById('offer_list');
+        offerList.innerHTML = '';
+        content[language].offer_list.forEach(item => {
+          let li = document.createElement('li');
+          li.textContent = item;
+          offerList.appendChild(li);
+        });
+
+        let chooseUsList = document.getElementById('choose_us_list');
+        chooseUsList.innerHTML = '';
+        content[language].choose_us_list.forEach(item => {
+          let li = document.createElement('li');
+          li.textContent = item;
+          chooseUsList.appendChild(li);
+        });
+      }
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1 id="header-title">Stud’Path</h1>
+            <ul>
+                <li><a id="home_menu" href="index.html">Home</a></li>
+                <li><a id="about_menu" href="about.html">About</a></li>
+                <li>
+                    <div class="language">
+                        <select id="language-selector" onchange="updateLanguage(this.value)">
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="about-section">
+            <div id="about-mission">
+                <h2 id="mission">About Us</h2>
+                <p id="mission_text">At Stud’Path, our mission is to provide an intuitive platform that makes education-related decisions simpler. From searching for the perfect school to locating student-friendly housing and amenities, we are committed to providing reliable, real-time information to support your educational journey.</p>
+            </div>
+            
+            <div id="about-offer">
+                <h3 id="offer">What We Offer</h3>
+                <ul id="offer_list">
+                    <li>School Finder: Easily search for schools by name or location with detailed information and interactive maps.</li>
+                    <li>Student Housing: Find student housing options that match your preferences, with the ability to filter based on services and facilities.</li>
+                    <li>Interactive Maps: A map system that lets you explore your surroundings, whether it’s finding schools or student housing.</li>
+                    <li>Custom Search: Search by residence, address, or school to narrow down your options based on your specific needs.</li>
+                </ul>
+            </div>
+
+            <div id="about-choose">
+                <h3 id="choose_us">Why Choose Stud’Path?</h3>
+                <ul id="choose_us_list">
+                    <li>Comprehensive Data: Access a vast database of schools and housing options, all available at your fingertips.</li>
+                    <li>Customized Search Options: Our platform allows you to tailor your search to fit your unique needs, ensuring you find exactly what you're looking for.</li>
+                    <li>User-Friendly Interface: Navigate effortlessly through our intuitive platform designed with your convenience in mind.</li>
+                    <li>Real-Time Information: Stay updated with the latest data and availability for schools and housing.</li>
+                </ul>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Stud’Path | All Rights Reserved</p>
+    </footer>
+</body>
+</html>

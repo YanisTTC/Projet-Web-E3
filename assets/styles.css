@@ -26,12 +26,22 @@ a:hover {
     color: #0056b3;
 }
 
+h2{
+    position: relative; 
+    text-align: center;
+    padding: 0 0 30pt 0;
+    font-size: 30pt;
+}
+
 /* Header Styles */
 
 header {
     background: #f9f9f9;
     color: #333;
     padding: 1rem 0;
+    margin-bottom: 5rem;
+    position: relative;
+    z-index: 1;
 }
 
 header nav {
@@ -41,6 +51,8 @@ header nav {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    position: relative; 
+    z-index: 10;
 }
 
 header nav h1 {
@@ -68,21 +80,25 @@ header nav ul {
 
 nav ul li {
     margin-right: 1rem; 
+    position: relative;
 }
 
 nav ul li:last-child {
     margin-right: 0; 
 }
 
-header nav ul li a {
+header nav ul li a{
     color: #333;
     text-decoration: none; 
     font-size: 0.9rem;
+    display: inline-block; 
+    position: relative;
+    z-index: 10;
 }
 
-header nav ul li a:hover {
+/* header nav ul li a:hover {
     color: white;
-}
+} */
 
 /* Language Selector */
 
@@ -516,3 +532,41 @@ footer p {
 .leaflet-marker-icon:hover {
     transform: scale(1.1); /* Slight enlargement on hover */
 }
+
+/* About Page */
+.about-section {
+    padding: 20px; /* Padding for the whole section */
+    max-width: 800px;
+    margin: 20px auto; /* Center the section with margin at the top/bottom */
+    font-family: Arial, sans-serif; /* Clean and readable font */
+    line-height: 1.8; /* Better text spacing */
+}
+
+.about-section > div {
+    margin-bottom: 20px; /* Space between each block */
+    padding: 15px;
+}
+
+/* Headings inside About Section */
+.about-section h2, .about-section h3 {
+    color: #333333;
+    margin-bottom: 10px;
+}
+
+/* Paragraphs inside About Section */
+.about-section p {
+    color: #555555;
+    margin: 0;
+}
+
+/* Lists inside About Section */
+.about-section ul {
+    list-style-type: disc;
+    padding-left: 20px; /* Indent the bullet points */
+    color: #555555;
+}
+
+.about-section li {
+    margin-bottom: 10px; /* Space between list items */
+}
+
