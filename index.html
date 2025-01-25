@@ -147,9 +147,9 @@
         
         /*****************     Calculate distances using OpenRouteService API     *****************/
         
-        async function calculateRoute(locations) {
+        async function calculateRoute(locations,mode) {
             const apiKey = "5b3ce3597851110001cf6248dbb2adb9062a4c6495d18767be27a734";
-            const url = "https://api.openrouteservice.org/v2/directions/driving-car";
+            const url = `https://api.openrouteservice.org/v2/directions/${mode}`;
 
             const body = {
                 coordinates: locations,
@@ -269,13 +269,13 @@
 
         let polylines = [];
 
-        async function calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey) {
+        async function calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey, mode) {
             const locations = [
                 [marker1.getLatLng().lng, marker1.getLatLng().lat], // [longitude, latitude]
                 [marker2.getLatLng().lng, marker2.getLatLng().lat]  // [longitude, latitude]
             ];
 
-            const routeData = await calculateRoute(locations);
+            const routeData = await calculateRoute(locations,mode);
 
             
             const routePolyline = displayRouteOnMap(routeData, map, routeKey); // Get the polyline
@@ -328,6 +328,8 @@
             const distanceList = document.getElementById("distance-list");
 
             let primaryMarker = null; // Stocke le marker principal
+
+            let currentMode = "driving-car"; 
 
             const sidebar = document.getElementById('sidebar');
             const toggleButton = document.getElementById('sidebar-toggle');
@@ -687,7 +689,15 @@
             });
         });
 
-        /*********** Routes & distances ***/
+        /*********** Routes & distances *********************/
+
+        let polylinesData = []; 
+        // Each element will look like: { marker1, marker2, polyline }
+
+        function storeRoute(marker1, marker2, polyline) {
+            polylinesData.push({ marker1, marker2, polyline });
+        }
+
 
         // route creation between the last two custom markers
         async function handleRouteCreation(marker1, marker2) {
@@ -706,7 +716,7 @@
             }
 
             // Otherwise, calculate and display the route
-            const routeData = await calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey);
+            const routeData = await calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey, currentMode);
             if (routeData && routeData.routes && routeData.routes[0]) {
                 const route = routeData.routes[0];
                 const distanceInKm = (route.summary.distance / 1000).toFixed(2);
@@ -863,6 +873,22 @@
 
         resetPrimaryMarkerButton.addTo(map);
 
+        // This function attaches event listeners to each button 
+        function setupTransportButtons() {
+            const transportButtons = document.querySelectorAll("#transport-mode button");
+            transportButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const mode = btn.getAttribute("data-mode");
+                    currentMode = mode;
+                    console.log("Transport mode set to:", currentMode);
+                });
+            });
+        }
+
+        // After the map and sidebar are initialized
+        setupTransportButtons();
+
+
         }; 
     </script>
 
@@ -954,12 +980,26 @@
         
         <div id="map-section">
             <div id="sidebar">
+
                 <button id="sidebar-toggle">&lt;</button>
                 <h2 id="distance-title">Distances</h2>
-                <div id="primary-marker-info"></div>
-                <ul id="distance-list">
 
-                </ul>
+                <div id="transport-mode">
+                    <button data-mode="driving-car">
+                        <img src="assets/icons-sideBar/car.png" alt="car" />
+                    </button>
+                    <button data-mode="cycling-regular">
+                        <img src="assets/icons-sideBar/bike.png" alt="bike" />
+                    </button>
+                    <button data-mode="foot-walking">
+                        <img src="assets/icons-sideBar/walking.png" alt="walk" />
+                    </button>
+                </div>
+
+                <div id="primary-marker-info"></div>
+
+                <ul id="distance-list"></ul>
+
             </div>
             <div id="map"></div>
         </div>
