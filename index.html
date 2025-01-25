@@ -389,6 +389,7 @@
                     if (geometry && geometry.coordinates) {
                         const [lng, lat] = geometry.coordinates;
                         map.setView([lat, lng], 17); // zoom on the school
+                        
                     } else {
                         alert("Coordinates not available for the selected school.");
                     }
@@ -419,9 +420,11 @@
                     // Center the map on the location
                     map.setView([lat, lon], 17);
 
+                    const defaultIconUrl = 'assets/marker_click.png';
 
                     // Add a marker to the location
                     let newMarker = L.marker([lat, lon], { 
+                        icon: createCustomIcon(defaultIconUrl),
                         title: searchValue,
                     }).addTo(map);
 
@@ -639,8 +642,11 @@
 
             console.log(`Creating marker at: ${lat.toFixed(2)}, ${lng.toFixed(2)}`);
 
+            const defaultIconUrl = 'assets/marker_click.png';
+
             // Create a new marker at the clicked location with the custom icon
             let newMarker = L.marker([lat, lng], {
+                icon: createCustomIcon(defaultIconUrl),
                 title: `Lat: ${lat}, Lng: ${lng}` // Optional title
             }).addTo(map);
 
