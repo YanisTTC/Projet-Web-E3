@@ -227,38 +227,32 @@
             }
 
             const route = routeData.routes[0];
-            console.log("First route:", route);
-
             if (!route.geometry) {
                 console.error("Route geometry is missing or malformed.");
                 return;
             }
 
-            // Decode the encoded geometry inttps://api.openrouteservice.org/o an array of coordinates
             const routeCoordinates = decodePolyline(route.geometry);
-            console.log("Coordinates formatted for Leaflet:", routeCoordinates);
+            const distanceInKm = (route.summary.distance / 1000).toFixed(2);
 
-            // Get the total distance of the route (in kilometers)
-            const distanceInKm = (route.summary.distance / 1000).toFixed(2); // Convert meters to kilometers
-
-            // Create a Leaflet polyline from the coordinates
             const routePolyline = L.polyline(routeCoordinates, { color: 'blue' });
-
-            // Add a tooltip to the polyline showing the distance
             routePolyline.bindTooltip(`Distance: ${distanceInKm} km`, { permanent: false, direction: "top" });
 
             routePolyline.on("click", function () {
                 map.removeLayer(routePolyline); 
-                polylines = polylines.filter(polyline => polyline !== routePolyline); 
+                polylines = polylines.filter(polyline => polyline !== routePolyline);
             });
-            // Add the polyline to the map
-            routePolyline.addTo(map);
 
-            // Center the map on the route
+            routePolyline.addTo(map);
             map.fitBounds(routePolyline.getBounds());
 
+            // Ajoute la polyline à la liste globale
+            polylines.push(routePolyline);
+
+            console.log("Route added to map and polylines array:", routePolyline);
             return routePolyline;
         }
+
 
         let polylines = [];
 
@@ -270,12 +264,14 @@
 
             const routeData = await calculateRoute(locations);
 
-            if (routeData) {
-                const routePolyline = displayRouteOnMap(routeData, map); // Get the polyline
-                console.log('salut');
-                polylines.push(routePolyline); // Store the polyline for future management
+            
+            const routePolyline = displayRouteOnMap(routeData, map); // Get the polyline
+            polylines.push(routePolyline); // Store the polyline for future management
                 
-            }
+            
+
+            return routeData;
+
         }
 
 
@@ -304,6 +300,10 @@
             const form = document.getElementById("search-form");
             const suggestions = document.getElementById("suggestions");
             const distanceList = document.getElementById("distance-list");
+
+            if (!distanceList) {
+                console.error("Distance list element not found in the DOM.");
+            }
             //const locations = prepareLocations(dataSchool, dataHousing);
             //const distanceMatrix = await calculateDistances(locations);
 
@@ -312,7 +312,7 @@
 
             // verify if the elements exist
             if (sidebar && toggleButton) {
-                // display or hide the distance window
+                // display or hide the distances window
                 toggleButton.addEventListener('click', () => {
                     sidebar.classList.toggle('collapsed');
                     toggleButton.textContent = sidebar.classList.contains('collapsed') ? '>' : '<';
@@ -666,9 +666,7 @@
                 const route = routeData.routes[0];
                 const distanceInKm = (route.summary.distance / 1000).toFixed(2);
 
-                // display the route on the map
-                const routePolyline = displayRouteOnMap(routeData, map);
-
+                console.log("salut");
                 // add the distance in the distance window
                 addDistanceToSidebar(marker1, marker2, distanceInKm);
 
@@ -683,6 +681,8 @@
         function addDistanceToSidebar(marker1, marker2, distance) {
             const listItem = document.createElement("li");
             listItem.textContent = `Distance between (${marker1.getLatLng().lat.toFixed(2)}, ${marker1.getLatLng().lng.toFixed(2)}) and (${marker2.getLatLng().lat.toFixed(2)}, ${marker2.getLatLng().lng.toFixed(2)}): ${distance} km`;
+
+            
 
             // button to remove the line
             const removeButton = document.createElement("button");
@@ -706,8 +706,12 @@
 
         function removeAllPolylines() {
             console.log("Removing all polylines:", polylines);
-            polylines.forEach(polyline => map.removeLayer(polyline)); // Remove each marker from the map
-            polylines = []; // Clear the markers array
+
+            polylines.forEach(polyline => {
+                map.removeLayer(polyline); 
+            });
+
+            polylines = [];
 
             console.log("All polylines removed.");
         }
@@ -826,7 +830,7 @@
         <div id="map-section">
             <div id="sidebar">
                 <button id="sidebar-toggle">&lt;</button>
-                <h2 id="distance-title">Distance</h2>
+                <h2 id="distance-title">Distances</h2>
 
                 <ul id="distance-list">
 
