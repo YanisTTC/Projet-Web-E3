@@ -236,9 +236,17 @@
             const routeCoordinates = decodePolyline(route.geometry);
             const distanceInKm = (route.summary.distance / 1000).toFixed(2);
 
-            const routePolyline = L.polyline(routeCoordinates, { color: 'blue' });
-            routePolyline.bindTooltip(`Distance: ${distanceInKm} km`, { permanent: false, direction: "top" });
+            const durationInSeconds = route.summary.duration; 
+            // Convert to minutes/hours as desired
+            const formattedTime = formatDuration(durationInSeconds);
 
+
+            const routePolyline = L.polyline(routeCoordinates, { color: 'blue' });
+            // Show distance and time in a tooltip, for example
+            routePolyline.bindTooltip(`Distance: ${distanceInKm} km | Time: ${formattedTime}`, {
+                permanent: false,
+                direction: "top"
+            });
             routePolyline.on("click", function () {
                 map.removeLayer(routePolyline); 
                 polylines = polylines.filter(polyline => polyline !== routePolyline);
@@ -277,6 +285,19 @@
 
             return routeData;
 
+        }
+
+        // Convert seconds to hours and minutes 
+        function formatDuration(seconds) {
+            const totalMinutes = Math.floor(seconds / 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            if (hours > 0) {
+                return `${hours}h ${minutes}min`;
+            } else {
+                return `${minutes}min`;
+            }
         }
 
 
@@ -689,7 +710,8 @@
             if (routeData && routeData.routes && routeData.routes[0]) {
                 const route = routeData.routes[0];
                 const distanceInKm = (route.summary.distance / 1000).toFixed(2);
-                addDistanceToSidebar(marker1, marker2, distanceInKm);
+                const durationInSeconds = route.summary.duration; 
+                addDistanceToSidebar(marker1, marker2, distanceInKm,durationInSeconds);
             }
         }
 
@@ -711,12 +733,14 @@
 
 
         // add the distance in the distance window
-        function addDistanceToSidebar(marker1, marker2, distance) {
+        function addDistanceToSidebar(marker1, marker2, distance, durationSeconds) {
             const marker1Title = marker1.options.title;
             const marker2Title = marker2.options.title;
 
+            const timeText = formatDuration(durationSeconds);
+
             const listItem = document.createElement("li");
-            listItem.textContent = `Distance between "${marker1Title}" and "${marker2Title}": ${distance} km`;
+            listItem.textContent = `Distance between "${marker1Title}" and "${marker2Title}": ${distance} km — Time: ${timeText}`;
 
             // button to remove the line
             const removeButton = document.createElement("button");
