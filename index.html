@@ -218,7 +218,7 @@
             return coordinates; // Return array of decoded coordinates
         }
 
-        function displayRouteOnMap(routeData, map) {
+        function displayRouteOnMap(routeData, map, routeKey) {
             console.log("Received Route Data:", routeData);
 
             if (!routeData || !routeData.routes || routeData.routes.length === 0) {
@@ -243,6 +243,10 @@
                 polylines = polylines.filter(polyline => polyline !== routePolyline);
             });
 
+            // Assign the routeKey to this polyline
+            routePolyline.routeKey = routeKey;
+
+
             routePolyline.addTo(map);
             map.fitBounds(routePolyline.getBounds());
 
@@ -256,7 +260,7 @@
 
         let polylines = [];
 
-        async function calculateDistanceBetweenMarkers(marker1, marker2, map) {
+        async function calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey) {
             const locations = [
                 [marker1.getLatLng().lng, marker1.getLatLng().lat], // [longitude, latitude]
                 [marker2.getLatLng().lng, marker2.getLatLng().lat]  // [longitude, latitude]
@@ -265,7 +269,7 @@
             const routeData = await calculateRoute(locations);
 
             
-            const routePolyline = displayRouteOnMap(routeData, map); // Get the polyline
+            const routePolyline = displayRouteOnMap(routeData, map, routeKey); // Get the polyline
             polylines.push(routePolyline); // Store the polyline for future management
                 
             
@@ -301,11 +305,7 @@
             const suggestions = document.getElementById("suggestions");
             const distanceList = document.getElementById("distance-list");
 
-            if (!distanceList) {
-                console.error("Distance list element not found in the DOM.");
-            }
-            //const locations = prepareLocations(dataSchool, dataHousing);
-            //const distanceMatrix = await calculateDistances(locations);
+            let primaryMarker = null; // Stocke le marker principal
 
             const sidebar = document.getElementById('sidebar');
             const toggleButton = document.getElementById('sidebar-toggle');
@@ -418,34 +418,24 @@
                     // Center the map on the location
                     map.setView([lat, lon], 17);
 
-                    // Define the default and hover icon URLs
-                    const defaultIconUrl = 'assets/marker_click.png';
-                    const hoverIconUrl = 'assets/marker_click_hover.png';
 
                     // Add a marker to the location
-                    let newMarker = L.marker([lat, lon], {
-                        icon: createCustomIcon(defaultIconUrl), // Uses the default icon for the click markers
+                    let newMarker = L.marker([lat, lon], { 
                         title: searchValue,
                     }).addTo(map);
 
                     // Add the new marker to the list of markers
                     markers.push(newMarker);
 
-                    // Add hover effect
-                    newMarker.on('mouseover', function () {
-                        this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon with hover image
-                        this.setZIndexOffset(1000); // Bring to front
-                    });
+                    onMarkerCreated(newMarker);
 
-                    newMarker.on('mouseout', function () {
-                        this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size and image
-                        this.setZIndexOffset(0); // Reset z-index
-                    });
-
-                    // Add an event to remove the marker on click
-                    newMarker.on("click", function () {
-                        map.removeLayer(newMarker);
-                        markers = markers.filter((marker) => marker !== newMarker);
+                    // add a click event to remove the marker when clicked
+                    newMarker.on('click', function () {
+                        if (primaryMarker == newMarker) {
+                            resetPrimaryMarker();
+                        }
+                        map.removeLayer(newMarker); // Remove marker from map
+                        markers = markers.filter(marker => marker !== newMarker); // Remove marker from the array
                     });
                 }
 
@@ -472,24 +462,35 @@
 
             let marker = L.marker(latlng, {
                 icon: createCustomIcon(defaultIconUrl),
-                title: feature.properties.name
+                title: feature.properties.uo_lib
             });
 
-            // Change icon on hover
+            // Hover events remain unchanged
             marker.on('mouseover', function () {
-                this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon
-                this.setZIndexOffset(1000); // Bring to front
+                this.setIcon(createCustomIcon(hoverIconUrl, [45, 45]));
+                this.setZIndexOffset(1000);
             });
-
             marker.on('mouseout', function () {
-                this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size
-                this.setZIndexOffset(0); // Reset z-index
+                this.setIcon(createCustomIcon(defaultIconUrl, [35, 35]));
+                this.setZIndexOffset(0);
             });
 
+            // Add a click event for route creation
+            marker.on('click', function () {
+                // If no primary marker is set, this becomes the primary marker
+                if (!primaryMarker) {
+                    setPrimaryMarker(marker);
+                    console.log("Primary marker is now:", primaryMarker.getLatLng());
+                } else {
+                    // A primary marker already exists; create a route
+                    handleRouteCreation(primaryMarker, marker);
+                }
+            });
 
             marker.bindPopup(createPopupContent(feature.properties));
             return marker;
         }
+
 
 
         L.geoJSON(dataSchool, {
@@ -503,7 +504,7 @@
         function createHousingMarkers(dataHousing, map) {
             console.log("Applying filters and creating markers...");
 
-            // Clear existing markers
+            // Clear existing markers from the map
             housingMarkers.forEach(marker => map.removeLayer(marker));
             housingMarkers = [];
 
@@ -512,14 +513,10 @@
                 .map(icon => icon.getAttribute('data-filter').toLowerCase());
             console.log("Selected filters:", selectedFilters);
 
-            // Loop through housing data and create markers
             dataHousing.features.forEach(feature => {
                 const { geometry, properties } = feature;
-
                 if (geometry && geometry.coordinates && properties.services) {
                     const services = properties.services.toLowerCase();
-
-                    // Check if the housing matches all selected filters
                     const matchesFilters = selectedFilters.every(filter => services.includes(filter));
 
                     if (matchesFilters || selectedFilters.length === 0) {
@@ -529,33 +526,37 @@
                         const hoverIconUrl = properties.hoverIconUrl || 'assets/marker_housing_hover.png';
 
                         const marker = L.marker([lat, lng], { 
-                            icon: createCustomIcon(defaultIconUrl), 
+                            icon: createCustomIcon(defaultIconUrl),
                             title: feature.properties.title 
                         });
 
-                        // Add hover effect
+                        // Hover effect
                         marker.on('mouseover', function () {
-                            this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon
-                            this.setZIndexOffset(1000); // Bring to front
+                            this.setIcon(createCustomIcon(hoverIconUrl, [45, 45]));
+                            this.setZIndexOffset(1000);
                         });
-
                         marker.on('mouseout', function () {
-                            this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size
-                            this.setZIndexOffset(0); // Reset z-index
+                            this.setIcon(createCustomIcon(defaultIconUrl, [35, 35]));
+                            this.setZIndexOffset(0);
                         });
 
+                        // Click event to set or use the primary marker
+                        marker.on('click', function () {
+                            if (!primaryMarker) {
+                                setPrimaryMarker(marker);
+                                console.log("Primary marker is now:", primaryMarker.getLatLng());
+                            } else {
+                                handleRouteCreation(primaryMarker, marker);
+                            }
+                        });
 
-                        // Add popup and marker to map
                         marker.bindPopup(createPopupContent(properties)).addTo(map);
-
-                        // Add marker to the array for future management
                         housingMarkers.push(marker);
                     }
                 }
             });
-
-            console.log("Markers created:", housingMarkers.length);
         }
+
 
 
         // Toggle the filter when an icon is clicked
@@ -595,6 +596,30 @@
 
         /*****************     Add markers to the map by clicking     *****************/
 
+        // For a new marker created by map click or address search
+        function onMarkerCreated(newMarker) {
+            // For the hover effect
+            const defaultIconUrl = 'assets/marker_click.png';
+            const hoverIconUrl = 'assets/marker_click_hover.png';
+
+            newMarker.on('mouseover', function () {
+                this.setIcon(createCustomIcon(hoverIconUrl, [45, 45]));
+                this.setZIndexOffset(1000);
+            });
+            newMarker.on('mouseout', function () {
+                this.setIcon(createCustomIcon(defaultIconUrl, [35, 35]));
+                this.setZIndexOffset(0);
+            });
+
+            if (!primaryMarker) {
+                setPrimaryMarker(newMarker);
+                console.log("Primary marker set:", primaryMarker.getLatLng());
+            } else {
+                handleRouteCreation(primaryMarker, newMarker);
+            }
+        }
+
+
         // Initialize an array to keep track of all markers
         let markers = [];
 
@@ -611,37 +636,24 @@
             // Get latitude and longitude of the clicked point
             let { lat, lng } = event.latlng;
 
-            console.log(`Creating marker at: ${lat}, ${lng}`);
-
-            // Define the default and hover icon URLs
-            const defaultIconUrl = 'assets/marker_click.png';
-            const hoverIconUrl = 'assets/marker_click_hover.png';
+            console.log(`Creating marker at: ${lat.toFixed(2)}, ${lng.toFixed(2)}`);
 
             // Create a new marker at the clicked location with the custom icon
             let newMarker = L.marker([lat, lng], {
-                icon: createCustomIcon(defaultIconUrl), // Use the default custom icon
                 title: `Lat: ${lat}, Lng: ${lng}` // Optional title
             }).addTo(map);
 
             // Add the new marker to the markers array
             markers.push(newMarker);
 
-            // Add hover effect
-            newMarker.on('mouseover', function () {
-                this.setIcon(createCustomIcon(hoverIconUrl, [45, 45])); // Enlarged icon with hover image
-                this.setZIndexOffset(1000); // Bring to front
-            });
+            //calls the function to set up the icons and the primary marker
+            onMarkerCreated(newMarker);
 
-            newMarker.on('mouseout', function () {
-                this.setIcon(createCustomIcon(defaultIconUrl, [35, 35])); // Reset to default size and image
-                this.setZIndexOffset(0); // Reset z-index
-            });
-
-            // Check for route creation
-            handleRouteCreation(newMarker);
-
-            // Optional: Add a click event to remove the marker when clicked
+            // add a click event to remove the marker when clicked
             newMarker.on('click', function () {
+                if (primaryMarker == newMarker) {
+                    resetPrimaryMarker();
+                }
                 map.removeLayer(newMarker); // Remove marker from map
                 markers = markers.filter(marker => marker !== newMarker); // Remove marker from the array
             });
@@ -650,39 +662,54 @@
         /*********** Routes & distances ***/
 
         // route creation between the last two custom markers
-        async function handleRouteCreation(newMarker) {
-            if (markers.length < 2) return; 
+        async function handleRouteCreation(marker1, marker2) {
+            if (marker1 === marker2) {
+                console.log("Cannot create a route between the same marker.");
+                return;
+            }
 
-            const marker1 = markers[markers.length - 2];
-            const marker2 = newMarker;
+            const routeKey = getRouteKey(marker1, marker2);
 
-            const locations = [
-                [marker1.getLatLng().lng, marker1.getLatLng().lat],
-                [marker2.getLatLng().lng, marker2.getLatLng().lat],
-            ];
+            // Check if a route with this key already exists
+            const exists = polylines.some(polyline => polyline.routeKey === routeKey);
+            if (exists) {
+                console.log(`A route between these markers already exists (key: ${routeKey}).`);
+                return;
+            }
 
-            const routeData = await calculateDistanceBetweenMarkers(marker1,marker2,map);
-            if (routeData) {
+            // Otherwise, calculate and display the route
+            const routeData = await calculateDistanceBetweenMarkers(marker1, marker2, map, routeKey);
+            if (routeData && routeData.routes && routeData.routes[0]) {
                 const route = routeData.routes[0];
                 const distanceInKm = (route.summary.distance / 1000).toFixed(2);
-
-                console.log("salut");
-                // add the distance in the distance window
                 addDistanceToSidebar(marker1, marker2, distanceInKm);
-
-                // remove the route when you click on it
-                routePolyline.on("click", () => {
-                    map.removeLayer(routePolyline); 
-                });
             }
         }
 
+        // return a key that identifies the route between two markers
+        // used to verify that a route already exists
+        function getRouteKey(markerA, markerB) {
+            const latA = markerA.getLatLng().lat.toFixed(5);
+            const lngA = markerA.getLatLng().lng.toFixed(5);
+            const latB = markerB.getLatLng().lat.toFixed(5);
+            const lngB = markerB.getLatLng().lng.toFixed(5);
+
+            // Sort the coordinates as strings 
+            const pair1 = `${latA},${lngA}`;
+            const pair2 = `${latB},${lngB}`;
+
+            // Return a combined string in alphabetical or numerical order
+            return (pair1 < pair2) ? `${pair1}-${pair2}` : `${pair2}-${pair1}`;
+        }
+
+
         // add the distance in the distance window
         function addDistanceToSidebar(marker1, marker2, distance) {
-            const listItem = document.createElement("li");
-            listItem.textContent = `Distance between (${marker1.getLatLng().lat.toFixed(2)}, ${marker1.getLatLng().lng.toFixed(2)}) and (${marker2.getLatLng().lat.toFixed(2)}, ${marker2.getLatLng().lng.toFixed(2)}): ${distance} km`;
+            const marker1Title = marker1.options.title;
+            const marker2Title = marker2.options.title;
 
-            
+            const listItem = document.createElement("li");
+            listItem.textContent = `Distance between "${marker1Title}" and "${marker2Title}": ${distance} km`;
 
             // button to remove the line
             const removeButton = document.createElement("button");
@@ -757,6 +784,53 @@
         };
 
         removePolylinesButton.addTo(map);
+        
+        // sets the global primaryMarker and updates the sidebar to show its coordinates.
+        function setPrimaryMarker(marker) {
+            primaryMarker = marker;
+            const markerLatLng = marker.getLatLng();
+
+            // Display primary marker info inside the sidebar
+            const primaryInfoDiv = document.getElementById("primary-marker-info");
+            if (primaryInfoDiv) {
+                primaryInfoDiv.textContent = `Primary Marker: ${marker.options.title}`;
+            } else {
+                console.warn("Element #primary-marker-info not found in the DOM.");
+            }
+        }
+
+
+        function resetPrimaryMarker() {
+            primaryMarker = null;
+            console.log("Primary marker reset.");
+
+            const primaryInfoDiv = document.getElementById("primary-marker-info");
+            if (primaryInfoDiv) {
+                primaryInfoDiv.textContent = ``;
+            } else {
+                console.warn("Element #primary-marker-info not found in the DOM.");
+            }
+        }
+
+        // Exemple : Ajouter un bouton pour réinitialiser le marker principal
+        let resetPrimaryMarkerButton = L.control({ position: 'topright' });
+
+        resetPrimaryMarkerButton.onAdd = function () {
+            let div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            div.style.backgroundColor = 'white';
+            div.style.padding = '5px';
+            div.style.cursor = 'pointer';
+            div.innerHTML = 'Reset Primary Marker';
+
+            L.DomEvent.on(div, 'click', function (e) {
+                L.DomEvent.stopPropagation(e);
+                resetPrimaryMarker();
+            });
+
+            return div;
+        };
+
+        resetPrimaryMarkerButton.addTo(map);
 
         }; 
     </script>
@@ -831,7 +905,7 @@
             <div id="sidebar">
                 <button id="sidebar-toggle">&lt;</button>
                 <h2 id="distance-title">Distances</h2>
-
+                <div id="primary-marker-info"></div>
                 <ul id="distance-list">
 
                 </ul>
