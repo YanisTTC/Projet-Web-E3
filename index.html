@@ -281,8 +281,9 @@
 
             
             const routePolyline = displayRouteOnMap(routeData, map, routeKey); // Get the polyline
-            polylines.push(routePolyline); // Store the polyline for future management
-                
+            if (routePolyline) {
+                polylines.push(routePolyline); // Store the polyline for future management
+            }    
             
 
             return routeData;
