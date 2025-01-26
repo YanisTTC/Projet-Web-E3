@@ -16,7 +16,7 @@
         about_menu: "About",
         school_search:"School",
         student_housing_search: "Student Housing",
-        custom_adsress_search: "Custom Address",
+        custom_address_search: "Custom Address",
         search_prompt: "Type your search:",
         search_input: "Enter your search..."
 
@@ -61,7 +61,7 @@
       document.getElementById('student_housing_search').textContent = content[language].student_housing_search;
       document.getElementById('custom_address_search').textContent = content[language].custom_address_search;
       document.getElementById('search_prompt').textContent = content[language].search_prompt;
-      document.getElementById('search_input').textContent = content[language].search_input;
+      document.getElementById('search_input').placeholder = content[language].search_input;
       
     }
       
