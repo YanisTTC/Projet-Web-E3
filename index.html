@@ -71,6 +71,7 @@
         // Store all housing markers for filtering
         let housingMarkers = [];                                
                 
+        let routeCounter = 0; 
         
         /*****************     Create the Popup for each school and student housing     *****************/
         
@@ -241,9 +242,10 @@
             const formattedTime = formatDuration(durationInSeconds);
 
 
+            routeCounter++; 
             const routePolyline = L.polyline(routeCoordinates, { color: 'blue' });
             // Show distance and time in a tooltip, for example
-            routePolyline.bindTooltip(`Distance: ${distanceInKm} km | Time: ${formattedTime}`, {
+            routePolyline.bindTooltip(`Route ${routeCounter} : ${distanceInKm} km | ${formattedTime}`, {
                 permanent: false,
                 direction: "top"
             });
@@ -328,7 +330,6 @@
             const distanceList = document.getElementById("distance-list");
 
             let primaryMarker = null; // Stocke le marker principal
-
             let currentMode = "driving-car"; 
 
             const sidebar = document.getElementById('sidebar');
@@ -747,14 +748,22 @@
             const marker1Title = marker1.options.title;
             const marker2Title = marker2.options.title;
 
-            const timeText = formatDuration(durationSeconds);
+            const routeIndex = routeCounter;
+
+            const formattedTime = formatDuration(durationSeconds);
+            const modeIcon = getTransportModeIcon(currentMode); 
 
             const listItem = document.createElement("li");
-            listItem.textContent = `Distance between "${marker1Title}" and "${marker2Title}": ${distance} km — Time: ${timeText}`;
-
+            listItem.innerHTML = `
+                Route ${routeIndex}: ${distance} km - ${formattedTime}
+                <img src="${modeIcon}" alt="${currentMode} icon"
+                    style="width:16px; height:16px; margin-left:5px;">
+            `;
             // button to remove the line
             const removeButton = document.createElement("button");
-            removeButton.textContent = "Remove";
+            removeButton.innerHTML = `
+                <img src="assets/icons-sideBar/trash.png" alt="Remove" style="width:16px; height:16px;">
+            `;
             removeButton.style.marginLeft = "10px";
             removeButton.onclick = () => {
                 listItem.remove(); 
@@ -762,6 +771,19 @@
 
             listItem.appendChild(removeButton);
             distanceList.appendChild(listItem);
+        }
+
+        function getTransportModeIcon(mode) {
+            switch (mode) {
+                case "driving-car":
+                    return "assets/icons-sideBar/car.png";
+                case "cycling-regular":
+                    return "assets/icons-sideBar/bike.png";
+                case "foot-walking":
+                    return "assets/icons-sideBar/walking.png";
+                default:
+                    return "assets/icons-sideBar/car.png";
+            }
         }
 
 
@@ -880,6 +902,8 @@
                 btn.addEventListener("click", () => {
                     const mode = btn.getAttribute("data-mode");
                     currentMode = mode;
+                    transportButtons.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
                     console.log("Transport mode set to:", currentMode);
                 });
             });
@@ -985,7 +1009,7 @@
                 <h2 id="distance-title">Distances</h2>
 
                 <div id="transport-mode">
-                    <button data-mode="driving-car">
+                    <button data-mode="driving-car" class="active">
                         <img src="assets/icons-sideBar/car.png" alt="car" />
                     </button>
                     <button data-mode="cycling-regular">

@@ -426,6 +426,49 @@ main {
     box-shadow: none;
 }
 
+#sidebar.collapsed #transport-mode {
+    display: flex !important;
+    flex-direction: column;  /* stack them vertically */
+    align-items: center;     /* center them in the collapsed bar */
+    gap: 10px;
+}
+
+#transport-mode {
+    display: flex;
+    flex-direction: row;       
+    flex-wrap: wrap;          
+    gap: 8px; 
+    margin-top: 60px; 
+    justify-content: center;  
+    align-items: center;      
+}
+
+#transport-mode button {
+    background-color: #ddd;       
+    color: #333;                  
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+/* Hover effect for transport mode buttons */
+#transport-mode button:hover {
+    background-color: #ccc;       
+}
+
+/* Active button style (current mode) */
+#transport-mode button.active {
+    background-color: #a7a7a7;    
+}
+
+/* hover on active button  */
+#transport-mode button.active:hover {
+    background-color: #ccc;    
+}
+
 /* Distance List */
 #distance-list {
     list-style: none;
