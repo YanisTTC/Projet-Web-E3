@@ -469,6 +469,14 @@ main {
     background-color: #ccc;    
 }
 
+#primary-marker-info {
+    padding: 10px;             
+    margin: 10px 0;            
+    font-size: 14px;           
+    color: #333;               
+    text-align: center;        
+}
+
 /* Distance List */
 #distance-list {
     list-style: none;
